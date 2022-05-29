@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 import Banner from '../partials/Banner';
 import DateChoose from '../partials/actions/DateChoose';
@@ -25,9 +25,11 @@ function Home() {
     const [itemBrand, setItemBrand] = React.useState(-1);
     console.log(db)
 
-    const getThuongHieu = () => {
-        db.collection("ThuongHieu").get().then((response) => {
-            setBrand(response)
+    const getThuongHieu = async () => {
+        const querySnapshot = await getDocs(collection(db, "ThuongHieu"));
+        querySnapshot.forEach((doc) => {
+            console.log(doc.data())
+            console.log(`${doc.id} => ${doc.data()}`);
         });
     }
 
