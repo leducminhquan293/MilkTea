@@ -12,7 +12,9 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
+import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
+import { Image } from 'primereact/image';
 import { InputText } from 'primereact/inputtext';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
 
@@ -108,13 +110,24 @@ function Home() {
                                         <div>
                                             <InputText value={itemHoTen} onChange={(e) => setValue(e.target.value)} placeholder="Kẻ hủy diệt size L" className='block' />
                                         </div>
-                                        <div>
+                                        <div className='mt-2'>
                                             <LabelMod name={'Thương hiệu'} />
                                         </div>
                                         <div>
-                                            <Dropdown value={itemBrand} options={brand} onChange={(e) => setItemBrand(e.value)} placeholder="Chọn thương hiệu" />
+                                            <div class="flex flex-row">
+                                                {
+                                                    brand.map((item, key) => {
+                                                        return (
+                                                            <div className={key !== 1 && key !== brand.length ? 'mr-2' : ''}>
+                                                                <Image key={key} imageStyle={{ width: 100, height: 100 }} src={`data:${item.Mime};base64,${item.Logo}`} alt={item.label} />
+                                                                <div className='text-pink-500 text-center'>{item.label}</div> 
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
                                         </div>
-                                        <div>
+                                        <div className='mt-2'>
                                             <LabelMod name={'Sản phẩm'} />
                                             <InputMod placeholder="" />
                                         </div>
