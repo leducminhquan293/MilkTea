@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs } from "firebase/firestore";
 
 import Banner from '../partials/Banner';
 import DateChoose from '../partials/actions/DateChoose';
-import db from '../class/firebase';
 import Header from '../partials/Header';
 import Sidebar from '../partials/Sidebar';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 import LabelMod from '../components/labelMod';
 import InputMod from '../components/InputMod';
-import DropdownMod from '../components/DropdownMod';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
@@ -17,20 +14,18 @@ import "primeicons/primeicons.css";
 
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
+import ThuongHieuHook from '../class/hooks/useThuongHieu';
 
 function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = React.useState(false);
     const [brand, setBrand] = React.useState([]);
+    const [itemHoTen, setItemHoTen] = React.useState('');
     const [itemBrand, setItemBrand] = React.useState(-1);
-    console.log(db)
 
     const getThuongHieu = async () => {
-        const querySnapshot = await getDocs(collection(db, "ThuongHieu"));
-        querySnapshot.forEach((doc) => {
-            console.log(doc.data())
-            console.log(`${doc.id} => ${doc.data()}`);
-        });
+        let res = await ThuongHieuHook.getThuongHieu();
+        setBrand(res);
     }
 
     const fetchData = () => {
@@ -111,7 +106,7 @@ function Home() {
                                             <LabelMod name={'Họ tên'} />
                                         </div>
                                         <div>
-                                            <InputText value={value} onChange={(e) => setValue(e.target.value)} placeholder="Kẻ hủy diệt size L" className='block' />
+                                            <InputText value={itemHoTen} onChange={(e) => setValue(e.target.value)} placeholder="Kẻ hủy diệt size L" className='block' />
                                         </div>
                                         <div>
                                             <LabelMod name={'Thương hiệu'} />
