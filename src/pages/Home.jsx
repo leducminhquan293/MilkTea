@@ -3,31 +3,42 @@ import React, { useEffect, useState } from 'react';
 import Banner from '../partials/Banner';
 import DateChoose from '../partials/actions/DateChoose';
 import Header from '../partials/Header';
-import Sidebar from '../partials/Sidebar';
-import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
-import LabelMod from '../components/labelMod';
 import InputMod from '../components/InputMod';
+import LabelMod from '../components/labelMod';
+import SanPhamHook from '../class/hooks/useSanPham';
+import Sidebar from '../partials/Sidebar';
+import ThuongHieuHook from '../class/hooks/useThuongHieu';
+import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
-import { Card } from 'primereact/card';
-import { Dropdown } from 'primereact/dropdown';
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 import { Image } from 'primereact/image';
 import { InputText } from 'primereact/inputtext';
-import ThuongHieuHook from '../class/hooks/useThuongHieu';
+
 
 function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = React.useState(false);
     const [brand, setBrand] = React.useState([]);
+    const [product, setProduct] = React.useState([]);
     const [itemHoTen, setItemHoTen] = React.useState('');
     const [itemBrand, setItemBrand] = React.useState(-1);
+    const [selectedBrand, setSelectedBrand] = React.useState(-1);
+    const [selectedProduct, setSelectedProduct] = React.useState(-1);
 
     const getThuongHieu = async () => {
         let res = await ThuongHieuHook.getThuongHieu();
         setBrand(res);
+    }
+
+    const onImageBrand = async (value) => {
+        let res = await SanPhamHook.getSanPhamByThuongHieu(value);
+        setSelectedBrand(value);
+        setProduct(res);
     }
 
     const fetchData = () => {
@@ -37,6 +48,15 @@ function Home() {
     useEffect(() => {
         fetchData();
     }, [])
+
+    const renderFooter = () => {
+        return (
+            <div>
+                <Button label="No" icon="pi pi-times" onClick={() => setShowModal(false)} className="p-button-text" />
+                <Button label="Yes" icon="pi pi-check" onClick={() => setShowModal(false)} autoFocus />
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -79,83 +99,78 @@ function Home() {
 
             </div>
 
-            {showModal ? (
-                <>
-                    <div
-                        className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
-                    >
-                        <div className="relative w-auto my-6 mx-auto max-w-3xl">
-                            {/*content*/}
-                            <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                                {/*header*/}
-                                <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
-                                    <h3 className="text-3xl font-semibold">
-                                        Đơn hàng
-                                    </h3>
-                                    <button
-                                        className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
-                                            ×
-                                        </span>
-                                    </button>
-                                </div>
-                                {/*body*/}
-                                <div className="relative p-6 flex-auto">
-                                    <div className='p-fluid'>
-                                        <div>
-                                            <LabelMod name={'Họ tên'} />
-                                        </div>
-                                        <div>
-                                            <InputText value={itemHoTen} onChange={(e) => setValue(e.target.value)} placeholder="Kẻ hủy diệt size L" className='block' />
-                                        </div>
-                                        <div className='mt-2'>
-                                            <LabelMod name={'Thương hiệu'} />
-                                        </div>
-                                        <div>
-                                            <div class="flex flex-row">
-                                                {
-                                                    brand.map((item, key) => {
-                                                        return (
-                                                            <div className={key !== 1 && key !== brand.length ? 'mr-2' : ''}>
-                                                                <Image key={key} imageStyle={{ width: 100, height: 100 }} src={`data:${item.Mime};base64,${item.Logo}`} alt={item.label} />
-                                                                <div className='text-pink-500 text-center'>{item.label}</div> 
-                                                            </div>
-                                                        )
-                                                    })
-                                                }
+            <Dialog header="Đơn Hàng" visible={showModal} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModal(false)}>
+                <div className="card">
+                    <div>
+                        <LabelMod name={'Họ tên'} />
+                    </div>
+                    <div>
+                        <InputText value={itemHoTen} onChange={(e) => setValue(e.target.value)} placeholder="Kẻ hủy diệt size L" className='w-full' />
+                    </div>
+                    <div className='mt-2'>
+                        <LabelMod name={'Thương hiệu'} />
+                    </div>
+                    <div>
+                        <div class="flex flex-row">
+                            {
+                                brand.map((item, key) => {
+                                    return (
+                                        <div
+                                            className={(key + 1) !== brand.length ? 'mr-2' : ''}
+                                            style={{
+                                                borderWidth: selectedBrand === item.value ? 3 : 0,
+                                                borderStyle: selectedBrand === item.value ? 'solid' : 'none',
+                                                borderColor: selectedBrand === item.value ? '#f1749e' : 0
+                                            }}
+                                            onClick={() => onImageBrand(item.value)}>
+                                            <Image key={key}
+                                                imageStyle={{ width: 100, height: 100 }}
+                                                src={`data:${item.Mime};base64,${item.Logo}`}
+                                                alt={item.label}
+                                            />
+                                            <div className='bg-green-500'>
+                                                <div className='text-white text-center'>{item.label}</div>
                                             </div>
                                         </div>
-                                        <div className='mt-2'>
-                                            <LabelMod name={'Sản phẩm'} />
-                                            <InputMod placeholder="" />
-                                        </div>
-                                    </div>
-                                </div>
-                                {/*footer*/}
-                                <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
-                                    <button
-                                        className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </div>
+                                    )
+                                })
+                            }
                         </div>
                     </div>
-                    <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                </>
-            ) : null}
+                    <div className='mt-2'>
+                        <LabelMod name={'Sản phẩm'} />
+                    </div>
+                </div>
+                <div>
+                    <div class="flex flex-row">
+                        {
+                            product.map((item, key) => {
+                                return (
+                                    <div className='mr-2'
+                                        style={{
+                                            borderWidth: selectedProduct === item.value ? 3 : 0,
+                                            borderStyle: selectedProduct === item.value ? 'solid' : 'none',
+                                            borderColor: selectedProduct === item.value ? '#f1749e' : 0
+                                        }}>
+                                        <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
+                                            <Image key={key}
+                                                imageStyle={{ width: 100, height: 100 }}
+                                                src={`data:${item.mime};base64,${item.content}`}
+                                                className={'align-items-center justify-content-center'}
+                                                alt={item.label}
+                                            />
+
+                                        </div>
+                                        <div className='bg-indigo-500'>
+                                            <div className='text-white text-center'>{item.label}</div>
+                                            <div className='text-white text-center font-bold'>{item.donGia.toLocaleString('en')}</div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                    </div>
+                </div>
+            </Dialog>
         </div>
     );
 }

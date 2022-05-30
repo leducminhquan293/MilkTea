@@ -2,9 +2,9 @@ import { collection, addDoc, getDocs, orderBy, query } from "firebase/firestore"
 import db from '../firebase';
 import TableName from "../tableName";
 
-const getThuongHieu = async () => {
+const getSanPhamByThuongHieu = async () => {
     let temp = [];
-    const querySnapshot = await getDocs(query(collection(db, TableName.ThuongHieu), orderBy('value')));
+    const querySnapshot = await getDocs(query(collection(db, TableName.SanPham), orderBy('value')));
     querySnapshot.forEach((doc) => {
         temp.push(doc.data())
     });
@@ -12,8 +12,8 @@ const getThuongHieu = async () => {
     return temp;
 }
 
-const ThuongHieuHook = {
-    getThuongHieu
+const SanPhamHook = {
+    getSanPhamByThuongHieu
 }
 
-export default ThuongHieuHook;
+export default SanPhamHook;
