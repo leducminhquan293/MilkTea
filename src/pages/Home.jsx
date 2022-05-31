@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import moment from 'moment';
 
 import Banner from '../partials/Banner';
 import DateChoose from '../partials/actions/DateChoose';
@@ -53,6 +54,7 @@ function Home() {
 
     const handleDate = (value) => {
         setItemDate(value);
+        getDanhSach(value[0]);
     }
 
     const getThuongHieu = async () => {
@@ -60,8 +62,8 @@ function Home() {
         setBrand(res);
     }
 
-    const getDanhSach = async () => {
-        let res = await DanhSachHook.getDanhSach(itemDate);
+    const getDanhSach = async (value) => {
+        let res = await DanhSachHook.getDanhSach(typeof value !== 'undefined' ? value : itemDate);
         setData(res);
     }
 
@@ -118,7 +120,7 @@ function Home() {
                     idSanPham: itemProduct,
                     TenSanPham: itemProductName,
                     DonGia: itemDonGia,
-                    CreatedDate: new Date()
+                    CreatedDate: moment(new Date()).format('DD/MM/YYYY')
                 }
 
                 DanhSachHook.addDanhSach(params);

@@ -1,4 +1,6 @@
 import { collection, addDoc, getDocs, orderBy, query, where } from "firebase/firestore";
+import moment from 'moment';
+
 import db from '../firebase';
 import TableName from "../tableName";
 
@@ -16,10 +18,11 @@ const getEndOfToday = () => {
     return now;
 }
 
-const getDanhSach = async (date) => {
+const getDanhSach = async (value) => {
     let temp = [];
     const danhSachRef = collection(db, TableName.DanhSach);
-    const res = query(danhSachRef, where('CreatedDate', '==', getStartOfToday()), where('CreatedDate', '==', getEndOfToday()));
+    let date = moment(value).format('DD/MM/YYYY');
+    const res = query(danhSachRef, where('CreatedDate', '==', date));
     const querySnapshot = await getDocs(res);
     querySnapshot.forEach((doc) => {
         temp.push(doc.data())
