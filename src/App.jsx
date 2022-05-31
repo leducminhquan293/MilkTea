@@ -12,6 +12,7 @@ import './charts/ChartjsConfig';
 // Import pages
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
+import SanPham from './pages/SanPham';
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
     <>
       <Routes>
         <Route exact path="/" element={<Home />} />
+        <Route exact path="/SanPham" element={<SanPham />} />
       </Routes>
     </>
   );
