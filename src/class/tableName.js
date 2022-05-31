@@ -1,6 +1,7 @@
 const TableName = {
     SanPham: 'SanPham',
-    ThuongHieu: 'ThuongHieu'
+    ThuongHieu: 'ThuongHieu',
+    DanhSach: 'DanhSach'
 }
 
 export default TableName;

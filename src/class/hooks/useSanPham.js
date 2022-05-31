@@ -4,7 +4,9 @@ import TableName from "../tableName";
 
 const getSanPhamByThuongHieu = async () => {
     let temp = [];
-    const querySnapshot = await getDocs(query(collection(db, TableName.SanPham), orderBy('value')));
+    const sanPhamRef = collection(db, TableName.SanPham);
+    const res = query(sanPhamRef, orderBy('value'));
+    const querySnapshot = await getDocs(res);
     querySnapshot.forEach((doc) => {
         temp.push(doc.data())
     });

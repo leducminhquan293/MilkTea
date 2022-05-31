@@ -1,7 +1,10 @@
 import React from 'react';
 import Flatpickr from 'react-flatpickr';
 
-function DateChoose() {
+const DateChoose = (props) => {
+  const handleChange = event => {
+    props.onChange(event);
+  }
 
   const options = {
     mode: 'single',
@@ -16,6 +19,7 @@ function DateChoose() {
     },
     onChange: (selectedDates, dateStr, instance) => {
       instance.element.value = dateStr.replace('to', '/');
+      handleChange(selectedDates)
     },
   }
 
