@@ -81,7 +81,7 @@ function Home() {
     }
 
     const onChangeProduct = async (item) => {
-        let donGia = itemSize ? (item.donGia + item.priceForUpSize) : item.donGia;
+        let donGia = itemSize ? (item.price + item.priceForUpSize) : item.price;
         setItemProduct(item.value);
         setItemProductName(item.label);
         setItemDonGia(donGia);
@@ -115,14 +115,14 @@ function Home() {
 
             if (countError === 0) {
                 let params = {
-                    HoTen: itemHoTen,
+                    name: itemHoTen,
                     idBrand: itemBrand,
-                    TenThuongHieu: itemBrandName,
-                    Size: itemSize,
-                    idSanPham: itemProduct,
-                    TenSanPham: itemProductName,
-                    DonGia: itemDonGia,
-                    CreatedDate: moment(new Date()).format('DD/MM/YYYY')
+                    brandname: itemBrandName,
+                    size: itemSize,
+                    idProduct: itemProduct,
+                    productName: itemProductName,
+                    price: itemDonGia,
+                    createdDate: moment(new Date()).format('DD/MM/YYYY')
                 }
 
                 DanhSachHook.addDanhSach(params);
@@ -288,11 +288,11 @@ function Home() {
                         }
                         <div className='mt-2'>
                             <DataTable value={data} responsiveLayout="scroll">
-                                <Column field="HoTen" header="Họ tên"></Column>
-                                <Column field="TenThuongHieu" header="Thương hiệu"></Column>
-                                <Column field="Size" header="Kích cỡ" body={bodySize}></Column>
-                                <Column field="TenSanPham" header="Sản phẩm"></Column>
-                                <Column field="DonGia" header="Đơn giá" body={bodyDonGia}></Column>
+                                <Column field="name" header="Họ tên"></Column>
+                                <Column field="brandName" header="Thương hiệu"></Column>
+                                <Column field="size" header="Kích cỡ" body={bodySize}></Column>
+                                <Column field="productName" header="Sản phẩm"></Column>
+                                <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
                             </DataTable>
                         </div>
                     </div>
