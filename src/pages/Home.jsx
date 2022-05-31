@@ -15,6 +15,7 @@ import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
 import { Button } from 'primereact/button';
+import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
@@ -54,6 +55,7 @@ function Home() {
 
     const handleDate = (value) => {
         setItemDate(value);
+        setShowModal(false);
         getDanhSach(value[0]);
     }
 
@@ -151,15 +153,6 @@ function Home() {
         return value.Size ? 'Large' : 'Medium';
     }
 
-    const renderFooter = () => {
-        return (
-            <div>
-                <Button label="Không" icon="pi pi-times" onClick={() => setShowModal(false)} className="p-button-text" />
-                <Button label="Đồng ý" icon="pi pi-check" onClick={() => onConfirm()} autoFocus />
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen overflow-hidden">
             <Toast ref={toast} />
@@ -186,7 +179,7 @@ function Home() {
                                 {/* Datepicker built with flatpickr */}
                                 <DateChoose onChange={handleDate} />
                                 {/* Add view button */}
-                                <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => setShowModal(true)}>
+                                <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => setShowModal(!showModal)}>
                                     <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                         <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
                                     </svg>
@@ -195,8 +188,105 @@ function Home() {
                             </div>
 
                         </div>
+                        {
+                            showModal &&
+                            <div className="card">
+                                <Card title="Order">
+                                    <div class="flex flex-wrap overflow-hidden">
+                                        <div class={"w-full overflow-hidden sm:w-" + (itemBrand === -1 ? 'full' : '1/2') + ' ' + (itemBrand === -1 ? 'pr-5' : '')}>
+                                            <div>
+                                                <LabelMod name={'Họ tên'} />
+                                            </div>
+                                            <div>
+                                                <InputText value={itemHoTen} onChange={(e) => setItemHoTen(e.target.value)} placeholder="Kẻ hủy diệt size L" className='w-full' />
+                                            </div>
+                                            <div className='mt-2'>
+                                                <LabelMod name={'Thương hiệu'} />
+                                            </div>
+                                            <div>
+                                                <div className="flex flex-row">
+                                                    {
+                                                        brand.map((item, key) => {
+                                                            return (
+                                                                <div
+                                                                    key={key}
+                                                                    className={(key + 1) !== brand.length ? 'mr-2' : ''}
+                                                                    onClick={() => onChangeBrand(item)}>
+                                                                    <Image
+                                                                        imageStyle={{ width: 100, height: 100 }}
+                                                                        src={`data:${item.Mime};base64,${item.Logo}`}
+                                                                        alt={item.label}
+                                                                    />
+                                                                    <div className={itemBrand === item.value ? 'bg-indigo-500' : 'bg-cyan-500'}>
+                                                                        <div className='text-white text-center'>{item.label}</div>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                </div>
+                                            </div>
+                                            {
+                                                itemBrand !== -1 &&
+                                                <div>
+                                                    <div className='mt-2'>
+                                                        <LabelMod name={'Kích cỡ'} />
+                                                    </div>
+                                                    <div className='flex justify-content-center'>
+                                                        <InputSwitch checked={itemSize} onChange={(e) => onChangeSize(e.value)} />
+                                                        <div className='font-bold ml-2 text-indigo-500'>
+                                                            {itemSize === false ? 'Medium' : 'Large'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="flex flex-wrap overflow-hidden mt-5">
+                                                <div class="w-full overflow-hidden sm:w-1/2">
+                                                    <Button label="Hủy" icon="pi pi-times" onClick={() => setShowModal(false)} className="p-button-outlined w-full" />
+                                                </div>
+                                                <div class="w-full overflow-hidden sm:w-1/2">
+                                                    <Button label="Đồng ý" icon="pi pi-check" onClick={() => onConfirm()} className="w-full" autoFocus />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {
+                                            itemBrand !== -1 &&
+                                            <div class="w-full overflow-hidden sm:w-1/2 pl-5">
+                                                <div>
+                                                    <LabelMod name={'Sản phẩm'} />
+                                                </div>
+                                                <div className="flex flex-row">
+                                                    {
+                                                        product.map((item, key) => {
+                                                            return (
+                                                                <div
+                                                                    key={key}
+                                                                    className={(key + 1) !== brand.length ? 'mr-2' : ''}
+                                                                    onClick={() => onChangeProduct(item)}>
+                                                                    <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
+                                                                        <Image
+                                                                            imageStyle={{ width: 100, height: 100 }}
+                                                                            src={`data:${item.mime};base64,${item.content}`}
+                                                                            className={'align-items-center justify-content-center'}
+                                                                            alt={item.label}
+                                                                        />
 
-                        <div>
+                                                                    </div>
+                                                                    <div className={itemProduct === item.value ? 'bg-yellow-500' : 'bg-cyan-500'}>
+                                                                        <div className='text-white text-center'>{item.label}</div>
+                                                                        <div className='text-white text-center font-bold'>{itemSize ? (item.donGia + item.priceForUpSize).toLocaleString() : item.donGia.toLocaleString()}</div>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </Card>
+                            </div>
+                        }
+                        <div className='mt-2'>
                             <DataTable value={data} responsiveLayout="scroll">
                                 <Column field="HoTen" header="Họ tên"></Column>
                                 <Column field="TenThuongHieu" header="Thương hiệu"></Column>
@@ -211,85 +301,6 @@ function Home() {
                 <Banner />
 
             </div>
-
-            <Dialog header="Đơn Hàng" visible={showModal} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModal(false)}>
-                <div className="card">
-                    <div>
-                        <LabelMod name={'Họ tên'} />
-                    </div>
-                    <div>
-                        <InputText value={itemHoTen} onChange={(e) => setItemHoTen(e.target.value)} placeholder="Kẻ hủy diệt size L" className='w-full' />
-                    </div>
-                    <div className='mt-2'>
-                        <LabelMod name={'Thương hiệu'} />
-                    </div>
-                    <div>
-                        <div className="flex flex-row">
-                            {
-                                brand.map((item, key) => {
-                                    return (
-                                        <div
-                                            key={key}
-                                            className={(key + 1) !== brand.length ? 'mr-2' : ''}
-                                            onClick={() => onChangeBrand(item)}>
-                                            <Image
-                                                imageStyle={{ width: 100, height: 100 }}
-                                                src={`data:${item.Mime};base64,${item.Logo}`}
-                                                alt={item.label}
-                                            />
-                                            <div className={itemBrand === item.value ? 'bg-indigo-500' : 'bg-cyan-500'}>
-                                                <div className='text-white text-center'>{item.label}</div>
-                                            </div>
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div>
-                    </div>
-                    {
-                        itemBrand !== -1 &&
-                        <div>
-                            <div className='mt-2'>
-                                <LabelMod name={'Kích cỡ'} />
-                            </div>
-                            <div className='flex justify-content-center'>
-                                <InputSwitch checked={itemSize} onChange={(e) => onChangeSize(e.value)} />
-                                <div className='font-bold ml-2 text-indigo-500'>
-                                    {itemSize === false ? 'Medium' : 'Large'}
-                                </div>
-                            </div>
-                            <div className='mt-2'>
-                                <LabelMod name={'Sản phẩm'} />
-                            </div>
-                            <div className="flex flex-row">
-                                {
-                                    product.map((item, key) => {
-                                        return (
-                                            <div
-                                                key={key}
-                                                className={(key + 1) !== brand.length ? 'mr-2' : ''}
-                                                onClick={() => onChangeProduct(item)}>
-                                                <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
-                                                    <Image
-                                                        imageStyle={{ width: 100, height: 100 }}
-                                                        src={`data:${item.mime};base64,${item.content}`}
-                                                        className={'align-items-center justify-content-center'}
-                                                        alt={item.label}
-                                                    />
-
-                                                </div>
-                                                <div className={itemProduct === item.value ? 'bg-yellow-500' : 'bg-cyan-500'}>
-                                                    <div className='text-white text-center'>{item.label}</div>
-                                                    <div className='text-white text-center font-bold'>{itemSize ? (item.donGia + item.priceForUpSize).toLocaleString() : item.donGia.toLocaleString()}</div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                            </div>
-                        </div>
-                    }
-                </div>
-            </Dialog>
         </div>
     );
 }
