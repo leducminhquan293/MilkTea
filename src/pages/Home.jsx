@@ -17,11 +17,13 @@ import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
 import { Button } from 'primereact/button';
+import { Calendar } from 'primereact/calendar';
 import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
 import { ColumnGroup } from 'primereact/columngroup';
 import { DataTable } from 'primereact/datatable';
 import { Image } from 'primereact/image';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
 import { RadioButton } from 'primereact/radiobutton';
@@ -48,8 +50,10 @@ function Home() {
     const [itemDanhSach, setItemDanhSach] = useState('');
     const [itemSugar, setItemSugar] = useState(-1);
     const [itemIce, setItemIce] = useState(-1);
+    const [itemReduce, setItemReduce] = useState();
 
     const handleDate = (value) => {
+        console.log(value)
         setItemDate(value);
         setShowModal(false);
         getDanhSach(value[0]);
@@ -143,6 +147,7 @@ function Home() {
 
     const productTotal = () => {
         let total = 0;
+
         for (let item of data) {
             total++;
         }
@@ -152,8 +157,14 @@ function Home() {
 
     const priceTotal = () => {
         let total = 0;
+
         for (let item of data) {
-            total += item.price;
+            let res = item.price;
+
+            if (typeof itemReduce !== 'undefined' && itemReduce !== null)
+                res = item.price - ((item.price * itemReduce) / 100);
+            
+            total += res;
         }
 
         return total.toLocaleString();
@@ -224,7 +235,12 @@ function Home() {
     }, [])
 
     const bodyDonGia = (value) => {
-        return value.price.toLocaleString();
+        let res = value.price;
+
+        if (typeof itemReduce !== 'undefined' && itemReduce !== null)
+            res = value.price - ((value.price * itemReduce) / 100);
+
+        return res.toLocaleString();
     }
 
     const bodySize = (value) => {
@@ -283,7 +299,8 @@ function Home() {
                             {/* Right: Actions */}
                             <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                                 {/* Datepicker built with flatpickr */}
-                                <DateChoose onChange={handleDate} />
+                                <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' />
+                    
                                 {/* Add view button */}
                                 <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => onChangeModal()}>
                                     <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
@@ -291,6 +308,12 @@ function Home() {
                                     </svg>
                                     <span className="hidden xs:block ml-2">Đặt ngay đi bạn eiii</span>
                                 </button>
+                                <InputNumber value={itemReduce}
+                                    onValueChange={(e) => setItemReduce(e.value)}
+                                    placeholder='Giảm giá %'
+                                    suffix='%'
+                                    min={1}
+                                    max={100} />
                             </div>
 
                         </div>
