@@ -1,54 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react';
-import moment from 'moment';
+import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
 import Banner from '../partials/Banner';
-import DateChoose from '../partials/actions/DateChoose';
 import Header from '../partials/Header';
-import LabelMod from '../components/labelMod';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
-import ThuongHieuHook from '../class/hooks/useThuongHieu';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
-import { Button } from 'primereact/button';
-import { Card } from 'primereact/card';
-import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
-import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
-import { Image } from 'primereact/image';
-import { InputText } from 'primereact/inputtext';
-import { InputSwitch } from 'primereact/inputswitch';
 import { Toast } from 'primereact/toast';
-import DanhSachHook from '../class/hooks/useDanhSach';
 import Constants from '../class/constants';
 
 function SanPham() {
     const toast = useRef(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [showModal, setShowModal] = React.useState(false);
-    const [brand, setBrand] = React.useState([]);
-    const [product, setProduct] = React.useState([]);
-    const [data, setData] = React.useState([]);
-    const [itemHoTen, setItemHoTen] = React.useState('');
-    const [itemBrand, setItemBrand] = React.useState(-1);
-    const [itemBrandName, setItemBrandName] = React.useState('');
-    const [itemSize, setItemSize] = React.useState(false);
-    const [itemProduct, setItemProduct] = React.useState(-1);
-    const [itemProductName, setItemProductName] = React.useState('');
-    const [itemDonGia, setItemDonGia] = React.useState(0);
-    const [itemDate, setItemDate] = React.useState(new Date());
+    const importRef = useRef();
 
     const onBasicUploadAuto = async (event) => {
         try {
             let count = 0;
+            let total = 0;
             const file = event.files[0];
-            let name = file.name;
             const reader = new FileReader();
             reader.onload = async (evt) => { // evt = on_file_select event
                 /* Parse data */
@@ -59,6 +35,7 @@ function SanPham() {
                 const ws = wb.Sheets[wsname];
                 /* Convert array of arrays */
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                total = data.length;
                 /* Update state */
                 await SanPhamHook.deleteSanPham();
 
@@ -79,7 +56,8 @@ function SanPham() {
                 }
             };
             reader.readAsBinaryString(file);
-            Constants.showSuccess(toast, 'Đã import ' + count + '/' + data.length + ' kết quả')
+            importRef.current.clear();
+            Constants.showSuccess(toast, 'Đã import dữ liệu')
         } catch (error) {
             alert(error)
         }
@@ -106,8 +84,9 @@ function SanPham() {
 
                         {/* Dashboard actions */}
                         <div>
-                            <h5>Basic with Auto</h5>
-                            <FileUpload mode="basic" name="demo[]" accept=".xlsx" maxFileSize={1000000} uploadHandler={onBasicUploadAuto} customUpload chooseLabel="Import" />
+                            <div className='font-bold text-3xl'>Import dữ liệu Sản phẩm với file excel</div>
+                            <a href='../../dist/assets/MilkTeaData.xlsx' download>Download file excel tại đây</a>
+                            <FileUpload ref={importRef} mode="basic" name="demo[]" accept=".xlsx" maxFileSize={1000000} uploadHandler={onBasicUploadAuto} customUpload chooseLabel="Import" />
                             {/* <FileUpload ref={this.imageRef} mode="basic" name="demo[]" chooseLabel="Tải hình ảnh tối đa 1 MB" accept="image/*" maxFileSize={1000000} className="mb-2" customUpload uploadHandler={this.uploadHinhAnh} /> */}
                         </div>
                     </div>

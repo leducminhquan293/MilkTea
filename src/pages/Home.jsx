@@ -24,34 +24,25 @@ import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Toast } from 'primereact/toast';
 import DanhSachHook from '../class/hooks/useDanhSach';
+import Constants from '../class/constants';
 
 function Home() {
     const toast = useRef(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [showModal, setShowModal] = React.useState(false);
-    const [brand, setBrand] = React.useState([]);
-    const [product, setProduct] = React.useState([]);
-    const [data, setData] = React.useState([]);
-    const [itemHoTen, setItemHoTen] = React.useState('');
-    const [itemBrand, setItemBrand] = React.useState(-1);
-    const [itemBrandName, setItemBrandName] = React.useState('');
-    const [itemSize, setItemSize] = React.useState(false);
-    const [itemProduct, setItemProduct] = React.useState(-1);
-    const [itemProductName, setItemProductName] = React.useState('');
-    const [itemDonGia, setItemDonGia] = React.useState(0);
-    const [itemDate, setItemDate] = React.useState(new Date());
-
-    const showSuccess = (mess) => {
-        toast.current.show({ severity: 'success', summary: 'Thành công', detail: mess, life: 3000 });
-    }
-
-    const showWarn = (mess) => {
-        toast.current.show({ severity: 'warn', summary: 'Cảnh báo', detail: mess, life: 3000 });
-    }
-
-    const showError = (mess) => {
-        toast.current.show({ severity: 'error', summary: 'Lỗi', detail: mess, life: 3000 });
-    }
+    const [showModal, setShowModal] = useState(false);
+    const [flag, setFlag] = useState(false); // flag: add - true: edit
+    const [brand, setBrand] = useState([]);
+    const [product, setProduct] = useState([]);
+    const [data, setData] = useState([]);
+    const [itemHoTen, setItemHoTen] = useState('');
+    const [itemBrand, setItemBrand] = useState(-1);
+    const [itemBrandName, setItemBrandName] = useState('');
+    const [itemSize, setItemSize] = useState(false); // false: Medium - true: Large
+    const [itemProduct, setItemProduct] = useState(-1);
+    const [itemProductName, setItemProductName] = useState('');
+    const [itemDonGia, setItemDonGia] = useState(0);
+    const [itemDate, setItemDate] = useState(new Date());
+    const [itemDanhSach, setItemDanhSach] = useState('');
 
     const handleDate = (value) => {
         setItemDate(value);
@@ -69,10 +60,20 @@ function Home() {
         setData(res);
     }
 
+    const onChangeModal = () => {
+        setShowModal(!showModal);
+        setFlag(false);
+        setItemHoTen('');
+        setItemBrand(-1);
+        setItemSize(false);
+        setItemProduct(-1);
+    }
+
     const onChangeBrand = async (item) => {
         let res = await SanPhamHook.getSanPhamByThuongHieu(item.value);
         setItemBrand(item.value);
         setItemBrandName(item.label);
+        setItemProduct(-1);
         setProduct(res);
     }
 
@@ -81,10 +82,53 @@ function Home() {
     }
 
     const onChangeProduct = async (item) => {
-        let donGia = itemSize ? (item.price + item.priceForUpSize) : item.price;
-        setItemProduct(item.value);
+        setItemProduct(item.id);
         setItemProductName(item.label);
-        setItemDonGia(donGia);
+    }
+
+    const onEditRow = async (item) => {
+        setShowModal(true);
+        setFlag(true);
+        setItemHoTen(item.name);
+        setItemBrand(item.idBrand);
+        setItemBrandName(item.brandName);
+        setItemProductName(item.productName);
+        setItemSize(item.size);
+        setItemDanhSach(item.id);
+        let res = await SanPhamHook.getSanPhamByThuongHieu(item.idBrand);
+        setProduct(res);
+        setItemProduct(item.idProduct);
+    }
+
+    const onDeleteRow = async (item) => {
+        try {
+            await DanhSachHook.deleteDanhSachById(item.id);
+            Constants.showSuccess(toast, 'Đã xóa dữ liệu');
+            getDanhSach();
+        } catch (error) {
+            alert(error)
+        }
+    }
+
+    const onCopyRow = async (item) => {
+        try {
+            let params = {
+                name: item.name,
+                idBrand: item.idBrand,
+                brandName: item.brandName,
+                size: item.size,
+                idProduct: item.idProduct,
+                productName: item.productName,
+                price: item.price,
+                createdDate: moment(new Date()).format('DD/MM/YYYY')
+            }
+
+            DanhSachHook.addDanhSach(params);
+            Constants.showSuccess(toast, 'Đã nhân đôi dữ liệu');
+            getDanhSach();
+        } catch (error) {
+            alert(error)
+        }
     }
 
     const fetchData = () => {
@@ -92,7 +136,7 @@ function Home() {
         getDanhSach();
     }
 
-    const onConfirm = () => {
+    const onConfirm = async () => {
         try {
             let mess = '';
             let countError = 0;
@@ -114,30 +158,34 @@ function Home() {
             }
 
             if (countError === 0) {
+                let info = await SanPhamHook.getSanPhamById(itemProduct);
                 let params = {
                     name: itemHoTen,
                     idBrand: itemBrand,
-                    brandname: itemBrandName,
+                    brandName: itemBrandName,
                     size: itemSize,
                     idProduct: itemProduct,
                     productName: itemProductName,
-                    price: itemDonGia,
+                    price: itemSize ? (info.price + info.priceForUpSize) : info.price,
                     createdDate: moment(new Date()).format('DD/MM/YYYY')
                 }
 
-                DanhSachHook.addDanhSach(params);
+                if (!flag) // add
+                    DanhSachHook.addDanhSach(params);
+                else // edit
+                    DanhSachHook.updateDanhSach(itemDanhSach, params);
             }
 
             if (mess !== '') {
-                showWarn(mess);
+                Constants.showWarn(toast, mess);
             }
             else {
                 getDanhSach();
                 setShowModal(false);
-                showSuccess('Đã nhận được đơn hàng')
+                Constants.showSuccess(toast, 'Đã nhận được đơn hàng');
             }
         } catch (error) {
-            showError(error);
+            alert(error);
         }
     }
 
@@ -146,11 +194,29 @@ function Home() {
     }, [])
 
     const bodyDonGia = (value) => {
-        return value.DonGia.toLocaleString();
+        return value.price.toLocaleString();
     }
 
     const bodySize = (value) => {
-        return value.Size ? 'Large' : 'Medium';
+        return value.size ? 'Large' : 'Medium';
+    }
+
+    const bodyEdit = (value) => {
+        return (
+            <Button icon="pi pi-pencil" iconPos="right" onClick={() => onEditRow(value)} />
+        )
+    }
+
+    const bodyDelete = (value) => {
+        return (
+            <Button icon="pi pi-trash" iconPos="right" onClick={() => onDeleteRow(value)} className="p-button-outlined p-button-danger" />
+        )
+    }
+
+    const bodyCopy = (value) => {
+        return (
+            <Button icon="pi pi-copy" iconPos="right" onClick={() => onCopyRow(value)} className="p-button-info" />
+        )
     }
 
     return (
@@ -179,7 +245,7 @@ function Home() {
                                 {/* Datepicker built with flatpickr */}
                                 <DateChoose onChange={handleDate} />
                                 {/* Add view button */}
-                                <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => setShowModal(!showModal)}>
+                                <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => onChangeModal()}>
                                     <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                         <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
                                     </svg>
@@ -192,8 +258,8 @@ function Home() {
                             showModal &&
                             <div className="card">
                                 <Card title="Order">
-                                    <div class="flex flex-wrap overflow-hidden">
-                                        <div class={"w-full overflow-hidden sm:w-" + (itemBrand === -1 ? 'full' : '1/2') + ' ' + (itemBrand === -1 ? 'pr-5' : '')}>
+                                    <div className="flex flex-wrap overflow-hidden">
+                                        <div className={"w-full overflow-hidden sm:w-" + (itemBrand === -1 ? 'full' : '1/2') + ' ' + (itemBrand === -1 ? 'pr-5' : '')}>
                                             <div>
                                                 <LabelMod name={'Họ tên'} />
                                             </div>
@@ -240,18 +306,18 @@ function Home() {
                                                     </div>
                                                 </div>
                                             }
-                                            <div class="flex flex-wrap overflow-hidden mt-5">
-                                                <div class="w-full overflow-hidden sm:w-1/2">
+                                            <div className="flex flex-wrap overflow-hidden mt-5">
+                                                <div className="w-full overflow-hidden sm:w-1/2">
                                                     <Button label="Hủy" icon="pi pi-times" onClick={() => setShowModal(false)} className="p-button-outlined w-full" />
                                                 </div>
-                                                <div class="w-full overflow-hidden sm:w-1/2">
+                                                <div className="w-full overflow-hidden sm:w-1/2">
                                                     <Button label="Đồng ý" icon="pi pi-check" onClick={() => onConfirm()} className="w-full" autoFocus />
                                                 </div>
                                             </div>
                                         </div>
                                         {
                                             itemBrand !== -1 &&
-                                            <div class="w-full overflow-hidden sm:w-1/2 pl-5">
+                                            <div className="w-full overflow-hidden sm:w-1/2 pl-5">
                                                 <div>
                                                     <LabelMod name={'Sản phẩm'} />
                                                 </div>
@@ -270,11 +336,10 @@ function Home() {
                                                                             className={'align-items-center justify-content-center'}
                                                                             alt={item.label}
                                                                         />
-
                                                                     </div>
-                                                                    <div className={itemProduct === item.value ? 'bg-yellow-500' : 'bg-cyan-500'}>
+                                                                    <div className={itemProduct === item.id ? 'bg-yellow-500' : 'bg-cyan-500'}>
                                                                         <div className='text-white text-center'>{item.label}</div>
-                                                                        <div className='text-white text-center font-bold'>{itemSize ? (item.donGia + item.priceForUpSize).toLocaleString() : item.donGia.toLocaleString()}</div>
+                                                                        <div className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
                                                                     </div>
                                                                 </div>
                                                             )
@@ -287,12 +352,21 @@ function Home() {
                             </div>
                         }
                         <div className='mt-2'>
-                            <DataTable value={data} responsiveLayout="scroll">
+                            <DataTable value={data}
+                                editMode="row"
+                                selectionMode='single'
+                                responsiveLayout="scroll">
                                 <Column field="name" header="Họ tên"></Column>
                                 <Column field="brandName" header="Thương hiệu"></Column>
                                 <Column field="size" header="Kích cỡ" body={bodySize}></Column>
                                 <Column field="productName" header="Sản phẩm"></Column>
                                 <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
+                                <Column field="id" header="id" hidden></Column>
+                                <Column field="idBrand" header="idBrand" hidden></Column>
+                                <Column field="idProduct" header="idProduct" hidden></Column>
+                                <Column body={bodyEdit}></Column>
+                                <Column body={bodyDelete}></Column>
+                                <Column body={bodyCopy}></Column>
                             </DataTable>
                         </div>
                     </div>
