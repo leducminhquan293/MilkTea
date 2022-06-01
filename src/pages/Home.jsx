@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import moment from 'moment';
 
 import Banner from '../partials/Banner';
+import Constants from '../class/constants';
+import DanhSachHook from '../class/hooks/useDanhSach';
 import DateChoose from '../partials/actions/DateChoose';
 import Header from '../partials/Header';
 import LabelMod from '../components/labelMod';
@@ -17,14 +19,14 @@ import "primeicons/primeicons.css";
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { Column } from 'primereact/column';
+import { ColumnGroup } from 'primereact/columngroup';
 import { DataTable } from 'primereact/datatable';
-import { Dialog } from 'primereact/dialog';
 import { Image } from 'primereact/image';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
+import { RadioButton } from 'primereact/radiobutton';
+import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
-import DanhSachHook from '../class/hooks/useDanhSach';
-import Constants from '../class/constants';
 
 function Home() {
     const toast = useRef(null);
@@ -34,15 +36,18 @@ function Home() {
     const [brand, setBrand] = useState([]);
     const [product, setProduct] = useState([]);
     const [data, setData] = useState([]);
+    const [sugar, setSugar] = useState(Constants.percent);
+    const [ice, setIce] = useState(Constants.percent);
     const [itemHoTen, setItemHoTen] = useState('');
     const [itemBrand, setItemBrand] = useState(-1);
     const [itemBrandName, setItemBrandName] = useState('');
     const [itemSize, setItemSize] = useState(false); // false: Medium - true: Large
     const [itemProduct, setItemProduct] = useState(-1);
     const [itemProductName, setItemProductName] = useState('');
-    const [itemDonGia, setItemDonGia] = useState(0);
     const [itemDate, setItemDate] = useState(new Date());
     const [itemDanhSach, setItemDanhSach] = useState('');
+    const [itemSugar, setItemSugar] = useState(-1);
+    const [itemIce, setItemIce] = useState(-1);
 
     const handleDate = (value) => {
         setItemDate(value);
@@ -94,6 +99,8 @@ function Home() {
         setItemBrandName(item.brandName);
         setItemProductName(item.productName);
         setItemSize(item.size);
+        setItemSugar(Constants.percent.find(c => c.key === item.sugar));
+        setItemIce(Constants.percent.find(c => c.key === item.ice));
         setItemDanhSach(item.id);
         let res = await SanPhamHook.getSanPhamByThuongHieu(item.idBrand);
         setProduct(res);
@@ -111,12 +118,15 @@ function Home() {
     }
 
     const onCopyRow = async (item) => {
+        console.log(item)
         try {
             let params = {
                 name: item.name,
                 idBrand: item.idBrand,
                 brandName: item.brandName,
                 size: item.size,
+                sugar: item.sugar,
+                ice: item.ice,
                 idProduct: item.idProduct,
                 productName: item.productName,
                 price: item.price,
@@ -129,6 +139,24 @@ function Home() {
         } catch (error) {
             alert(error)
         }
+    }
+
+    const productTotal = () => {
+        let total = 0;
+        for (let item of data) {
+            total++;
+        }
+
+        return total.toLocaleString();
+    }
+
+    const priceTotal = () => {
+        let total = 0;
+        for (let item of data) {
+            total += item.price;
+        }
+
+        return total.toLocaleString();
     }
 
     const fetchData = () => {
@@ -164,6 +192,8 @@ function Home() {
                     idBrand: itemBrand,
                     brandName: itemBrandName,
                     size: itemSize,
+                    sugar: itemSugar.key,
+                    ice: itemIce.key,
                     idProduct: itemProduct,
                     productName: itemProductName,
                     price: itemSize ? (info.price + info.priceForUpSize) : info.price,
@@ -219,6 +249,16 @@ function Home() {
         )
     }
 
+    let footerGroup = <ColumnGroup>
+        <Row>
+            <Column footer="Tổng cộng:" />
+            <Column footer={productTotal} />
+            <Column colSpan={3} />
+            <Column footer={priceTotal} />
+            <Column colSpan={4} />
+        </Row>
+    </ColumnGroup>;
+
     return (
         <div className="flex h-screen overflow-hidden">
             <Toast ref={toast} />
@@ -269,13 +309,14 @@ function Home() {
                                             <div className='mt-2'>
                                                 <LabelMod name={'Thương hiệu'} />
                                             </div>
-                                            <div>
-                                                <div className="flex flex-row">
+                                            <div className='flex'>
+                                                <div className='flex-row'>
                                                     {
                                                         brand.map((item, key) => {
                                                             return (
                                                                 <div
                                                                     key={key}
+                                                                    style={{ width: 100, float: 'left' }}
                                                                     className={(key + 1) !== brand.length ? 'mr-2' : ''}
                                                                     onClick={() => onChangeBrand(item)}>
                                                                     <Image
@@ -296,13 +337,42 @@ function Home() {
                                                 itemBrand !== -1 &&
                                                 <div>
                                                     <div className='mt-2'>
-                                                        <LabelMod name={'Kích cỡ'} />
+                                                        <LabelMod name={'Tỷ lệ đường'} />
                                                     </div>
                                                     <div className='flex justify-content-center'>
-                                                        <InputSwitch checked={itemSize} onChange={(e) => onChangeSize(e.value)} />
-                                                        <div className='font-bold ml-2 text-indigo-500'>
-                                                            {itemSize === false ? 'Medium' : 'Large'}
-                                                        </div>
+                                                        {
+                                                            sugar.map((category) => {
+                                                                return (
+                                                                    <div key={category.key} className="field-radiobutton">
+                                                                        <RadioButton inputId={category.key}
+                                                                            name="sugar" value={category}
+                                                                            onChange={(e) => setItemSugar(e.value)}
+                                                                            checked={itemSugar.key === category.key}
+                                                                            className='mr-1' />
+                                                                        <label htmlFor={category.key} className='mr-3'>{category.name}</label>
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                    <div className='mt-2'>
+                                                        <LabelMod name={'Tỷ lệ đá'} />
+                                                    </div>
+                                                    <div className='flex justify-content-center'>
+                                                        {
+                                                            ice.map((category) => {
+                                                                return (
+                                                                    <div key={category.key} className="field-radiobutton">
+                                                                        <RadioButton inputId={category.key}
+                                                                            name="ice" value={category}
+                                                                            onChange={(e) => setItemIce(e.value)}
+                                                                            checked={itemIce.key === category.key}
+                                                                            className='mr-1' />
+                                                                        <label htmlFor={category.key} className='mr-3'>{category.name}</label>
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
                                                     </div>
                                                 </div>
                                             }
@@ -318,7 +388,16 @@ function Home() {
                                         {
                                             itemBrand !== -1 &&
                                             <div className="w-full overflow-hidden sm:w-1/2 pl-5">
-                                                <div>
+                                                <div className='mt-2'>
+                                                    <LabelMod name={'Kích cỡ'} />
+                                                </div>
+                                                <div className='flex justify-content-center'>
+                                                    <InputSwitch checked={itemSize} onChange={(e) => onChangeSize(e.value)} />
+                                                    <div className='font-bold ml-2 text-indigo-500'>
+                                                        {itemSize === false ? 'Medium' : 'Large'}
+                                                    </div>
+                                                </div>
+                                                <div className='mt-2'>
                                                     <LabelMod name={'Sản phẩm'} />
                                                 </div>
                                                 <div className="flex flex-row">
@@ -355,12 +434,15 @@ function Home() {
                             <DataTable value={data}
                                 editMode="row"
                                 selectionMode='single'
-                                responsiveLayout="scroll">
+                                responsiveLayout="scroll"
+                                footerColumnGroup={footerGroup}>
                                 <Column field="name" header="Họ tên"></Column>
-                                <Column field="brandName" header="Thương hiệu"></Column>
-                                <Column field="size" header="Kích cỡ" body={bodySize}></Column>
                                 <Column field="productName" header="Sản phẩm"></Column>
+                                <Column field="size" header="Kích cỡ" body={bodySize}></Column>
+                                <Column field="sugar" header="Tỷ lệ đường"></Column>
+                                <Column field="ice" header="Tỷ lệ đá"></Column>
                                 <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
+                                <Column field="brandName" header="Thương hiệu"></Column>
                                 <Column field="id" header="id" hidden></Column>
                                 <Column field="idBrand" header="idBrand" hidden></Column>
                                 <Column field="idProduct" header="idProduct" hidden></Column>
