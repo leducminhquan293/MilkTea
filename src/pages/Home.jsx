@@ -26,12 +26,14 @@ import { Image } from 'primereact/image';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
+import { ProgressBar } from 'primereact/progressbar';
 import { RadioButton } from 'primereact/radiobutton';
 import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
 
 function Home() {
     const toast = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [flag, setFlag] = useState(false); // flag: add - true: edit
@@ -64,8 +66,10 @@ function Home() {
     }
 
     const getDanhSach = async (value) => {
+        setIsLoading(true);
         let res = await DanhSachHook.getDanhSach(typeof value !== 'undefined' ? value : itemDate);
         setData(res);
+        setIsLoading(false);
     }
 
     const onChangeModal = () => {
@@ -95,14 +99,17 @@ function Home() {
     }
 
     const onDecreaseDate = () => {
-        let res = moment(itemDate).add(1, 'day');
-        console.log(res)
-        setItemDate(res);
+        let res = moment(itemDate).subtract(1, 'day');
+        setShowModal(false);
+        setItemDate(res.toDate());
+        getDanhSach(res.toDate());
     }
 
     const onIncreaseDate = () => {
-        let res = moment(itemDate).subtract(1, 'day');
-        setItemDate(res);
+        let res = moment(itemDate).add(1, 'day');
+        setShowModal(false);
+        setItemDate(res.toDate());
+        getDanhSach(res.toDate());
     }
 
     const onEditRow = async (item) => {
@@ -468,25 +475,32 @@ function Home() {
                             </div>
                         }
                         <div className='mt-2'>
-                            <DataTable value={data}
-                                editMode="row"
-                                selectionMode='single'
-                                responsiveLayout="scroll"
-                                footerColumnGroup={footerGroup}>
-                                <Column field="name" header="Họ tên"></Column>
-                                <Column field="productName" header="Sản phẩm"></Column>
-                                <Column field="size" header="Kích cỡ" body={bodySize}></Column>
-                                <Column field="sugar" header="Tỷ lệ đường"></Column>
-                                <Column field="ice" header="Tỷ lệ đá"></Column>
-                                <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
-                                <Column field="brandName" header="Thương hiệu"></Column>
-                                <Column field="id" header="id" hidden></Column>
-                                <Column field="idBrand" header="idBrand" hidden></Column>
-                                <Column field="idProduct" header="idProduct" hidden></Column>
-                                <Column body={bodyEdit}></Column>
-                                <Column body={bodyDelete}></Column>
-                                <Column body={bodyCopy}></Column>
-                            </DataTable>
+                            {
+                                isLoading &&
+                                <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
+                            }
+                            {
+                                !isLoading &&
+                                <DataTable value={data}
+                                    editMode="row"
+                                    selectionMode='single'
+                                    responsiveLayout="scroll"
+                                    footerColumnGroup={footerGroup}>
+                                    <Column field="name" header="Họ tên"></Column>
+                                    <Column field="productName" header="Sản phẩm"></Column>
+                                    <Column field="size" header="Kích cỡ" body={bodySize}></Column>
+                                    <Column field="sugar" header="Tỷ lệ đường"></Column>
+                                    <Column field="ice" header="Tỷ lệ đá"></Column>
+                                    <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
+                                    <Column field="brandName" header="Thương hiệu"></Column>
+                                    <Column field="id" header="id" hidden></Column>
+                                    <Column field="idBrand" header="idBrand" hidden></Column>
+                                    <Column field="idProduct" header="idProduct" hidden></Column>
+                                    <Column body={bodyEdit}></Column>
+                                    <Column body={bodyDelete}></Column>
+                                    <Column body={bodyCopy}></Column>
+                                </DataTable>
+                            }
                         </div>
                     </div>
                 </main>
