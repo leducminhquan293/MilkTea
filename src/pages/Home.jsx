@@ -6,7 +6,7 @@ import Constants from '../class/constants';
 import DanhSachHook from '../class/hooks/useDanhSach';
 import DateChoose from '../partials/actions/DateChoose';
 import Header from '../partials/Header';
-import LabelMod from '../components/labelMod';
+import LabelMod from '../components/LabelMod';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
