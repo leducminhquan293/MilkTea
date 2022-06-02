@@ -121,7 +121,6 @@ function Home() {
     }
 
     const onCopyRow = async (item) => {
-        console.log(item)
         try {
             let params = {
                 name: item.name,
