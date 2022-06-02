@@ -7,7 +7,6 @@ import TableName from "../tableName";
 const danhSachRef = collection(db, TableName.DanhSach);
 const getDanhSach = async (value) => {
     let temp = [];
-    console.log('vaavava',value)
     let date = moment(value).format('DD/MM/YYYY');
     const res = query(danhSachRef, where('createdDate', '==', date));
     const querySnapshot = await getDocs(res);
