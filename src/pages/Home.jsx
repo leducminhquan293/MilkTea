@@ -53,10 +53,9 @@ function Home() {
     const [itemReduce, setItemReduce] = useState();
 
     const handleDate = (value) => {
-        console.log(value)
         setItemDate(value);
         setShowModal(false);
-        getDanhSach(value[0]);
+        getDanhSach(value);
     }
 
     const getThuongHieu = async () => {
@@ -163,7 +162,7 @@ function Home() {
 
             if (typeof itemReduce !== 'undefined' && itemReduce !== null)
                 res = item.price - ((item.price * itemReduce) / 100);
-            
+
             total += res;
         }
 
@@ -300,7 +299,7 @@ function Home() {
                             <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                                 {/* Datepicker built with flatpickr */}
                                 <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' />
-                    
+
                                 {/* Add view button */}
                                 <button className="btn bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => onChangeModal()}>
                                     <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
@@ -423,29 +422,32 @@ function Home() {
                                                 <div className='mt-2'>
                                                     <LabelMod name={'Sản phẩm'} />
                                                 </div>
-                                                <div className="flex flex-row">
-                                                    {
-                                                        product.map((item, key) => {
-                                                            return (
-                                                                <div
-                                                                    key={key}
-                                                                    className={(key + 1) !== brand.length ? 'mr-2' : ''}
-                                                                    onClick={() => onChangeProduct(item)}>
-                                                                    <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
-                                                                        <Image
-                                                                            imageStyle={{ width: 100, height: 100 }}
-                                                                            src={`data:${item.mime};base64,${item.content}`}
-                                                                            className={'align-items-center justify-content-center'}
-                                                                            alt={item.label}
-                                                                        />
+                                                <div className="flex" style={{ height: 500, overflowY: 'scroll' }}>
+                                                    <div className='flex-row'>
+                                                        {
+                                                            product.map((item, key) => {
+                                                                return (
+                                                                    <div
+                                                                        key={key}
+                                                                        className={(key + 1) !== product.length ? 'mr-2' : ''}
+                                                                        style={{ width: 120, height: 250, float: 'left' }}
+                                                                        onClick={() => onChangeProduct(item)}>
+                                                                        <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
+                                                                            <Image
+                                                                                imageStyle={{ width: 120, height: 80 }}
+                                                                                src={item.content}
+                                                                                alt={item.label}
+                                                                            />
+                                                                        </div>
+                                                                        <div style={{ height: 120 }} className={itemProduct === item.id ? 'bg-yellow-500' : 'bg-cyan-500'}>
+                                                                            <div style={{ height: 90 }} className='text-white text-center p-2'>{item.label}</div>
+                                                                            <div style={{ height: 30 }} className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className={itemProduct === item.id ? 'bg-yellow-500' : 'bg-cyan-500'}>
-                                                                        <div className='text-white text-center'>{item.label}</div>
-                                                                        <div className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        })}
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
                                         }
