@@ -4,7 +4,7 @@ import moment from 'moment';
 import Banner from '../partials/Banner';
 import Constants from '../class/constants';
 import DanhSachHook from '../class/hooks/useDanhSach';
-import DateChoose from '../partials/actions/DateChoose';
+import DonHangHook from '../class/hooks/useDonHang';
 import Header from '../partials/Header';
 import LabelMod from '../components/LabelMod';
 import SanPhamHook from '../class/hooks/useSanPham';
@@ -37,6 +37,7 @@ function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [flag, setFlag] = useState(false); // flag: add - true: edit
+    const [disabledModal, setDisabledModal] = useState(false);
     const [brand, setBrand] = useState([]);
     const [product, setProduct] = useState([]);
     const [data, setData] = useState([]);
@@ -63,6 +64,16 @@ function Home() {
     const getThuongHieu = async () => {
         let res = await ThuongHieuHook.getThuongHieu();
         setBrand(res);
+    }
+
+    const getGiamGia = async (value) => {
+        let date = typeof value !== 'undefined' && value !== null ? value : itemDate;
+        let res = await DonHangHook.getGiamGiaByNgayDat(date);
+        
+        if (res.length === 0)
+            setItemReduce(null)
+        else
+            setItemReduce(res[0].giamGia)
     }
 
     const getDanhSach = async (value) => {
@@ -98,18 +109,43 @@ function Home() {
         setItemProductName(item.label);
     }
 
+    const onChangeReduce = (value) => {
+        if (data.length > 0) {
+            let params = {
+                ngayDat: moment(itemDate).format('DD/MM/YYYY'),
+                giamGia: value
+            }
+            DonHangHook.updateGiamGiaByNgayDat(itemDate, params);
+            setItemReduce(value);
+        }
+        else {
+            Constants.showWarn(toast, 'Bạn không có dữ liệu vì vậy giảm giá không có hiệu lực')
+        }
+    }
+
+    const onChangeDisabledModal = (value) => {
+        if (value > new Date())
+            setDisabledModal(true);
+        else
+            setDisabledModal(false)
+    }
+
     const onDecreaseDate = () => {
-        let res = moment(itemDate).subtract(1, 'day');
+        let res = moment(itemDate).subtract(1, 'day').toDate();
+        onChangeDisabledModal(res);
         setShowModal(false);
-        setItemDate(res.toDate());
-        getDanhSach(res.toDate());
+        setItemDate(res);
+        getGiamGia(res);
+        getDanhSach(res);
     }
 
     const onIncreaseDate = () => {
-        let res = moment(itemDate).add(1, 'day');
+        let res = moment(itemDate).add(1, 'day').toDate();
+        onChangeDisabledModal(res);
         setShowModal(false);
-        setItemDate(res.toDate());
-        getDanhSach(res.toDate());
+        setItemDate(res);
+        getGiamGia(res);
+        getDanhSach(res);
     }
 
     const onEditRow = async (item) => {
@@ -188,6 +224,7 @@ function Home() {
 
     const fetchData = () => {
         getThuongHieu();
+        getGiamGia();
         getDanhSach();
     }
 
@@ -310,34 +347,35 @@ function Home() {
                         {/* Welcome banner */}
                         <WelcomeBanner />
 
-                        {/* Dashboard actions */}
-                        <div className="sm:flex sm:justify-between sm:items-center mb-8">
-                            {/* Right: Actions */}
-                            <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-                                {/* Datepicker built with flatpickr */}
-                                <Button icon="pi pi-angle-left" onClick={() => onDecreaseDate()} />
-                                <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' />
-                                <Button icon="pi pi-angle-right" onClick={() => onIncreaseDate()} />
-
-                                {/* Add view button */}
-                                <button className="btn bg-pink-500 hover:bg-indigo-600 text-white" onClick={() => onChangeModal()}>
-                                    <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
-                                        <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                                    </svg>
-                                    <span className="hidden xs:block ml-2">Đặt ngay đi bạn eiii</span>
-                                </button>
-                                <InputNumber value={itemReduce}
-                                    onValueChange={(e) => setItemReduce(e.value)}
-                                    placeholder='Giảm giá %'
-                                    suffix='%'
-                                    min={1}
-                                    max={100} />
+                        <div className="container mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                <div className="flex justify-start">
+                                    <Button icon="pi pi-angle-left" className='p-button-text p-button-plain' onClick={() => onDecreaseDate()} />
+                                    <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' />
+                                    <Button icon="pi pi-angle-right" className='p-button-text p-button-plain' onClick={() => onIncreaseDate()} />
+                                </div>
+                                <div className="flex justify-start">
+                                    <Button label='Đặt ngay đi bạn eiii'
+                                        disabled={disabledModal}
+                                        style={{ backgroundColor: 'deeppink', borderColor: 'deeppink' }}
+                                        icon='pi pi-plus'
+                                        iconPos='left'
+                                        onClick={() => onChangeModal()} />
+                                </div>
+                                <div className="flex justify-start">
+                                    <InputNumber value={itemReduce}
+                                        onValueChange={(e) => onChangeReduce(e.value)}
+                                        placeholder='Giảm giá %'
+                                        suffix='%'
+                                        min={1}
+                                        max={100} />
+                                </div>
                             </div>
-
                         </div>
+
                         {
                             showModal &&
-                            <div className="card">
+                            <div className="card mt-2">
                                 <Card title="Order">
                                     <div className="flex flex-wrap overflow-hidden">
                                         <div className={"w-full overflow-hidden sm:w-" + (itemBrand === -1 ? 'full' : '1/2') + ' ' + (itemBrand === -1 ? 'pr-5' : '')}>
