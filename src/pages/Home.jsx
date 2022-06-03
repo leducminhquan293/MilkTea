@@ -355,7 +355,7 @@ function Home() {
                                     <Button icon="pi pi-angle-right" className='p-button-text p-button-plain' onClick={() => onIncreaseDate()} />
                                 </div>
                                 <div className="flex justify-start">
-                                    <Button label='Đặt ngay đi bạn eiii'
+                                    <Button label={!disabledModal ? 'Đặt ngay đi bạn eiii' : 'Quay xe đi bạn eiii'}
                                         disabled={disabledModal}
                                         style={{ backgroundColor: 'deeppink', borderColor: 'deeppink' }}
                                         icon='pi pi-plus'
