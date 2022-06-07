@@ -248,6 +248,16 @@ function Home() {
                     countError++;
                 }
             }
+			
+			if (itemSugar === -1) {
+				mess += 'Bạn chưa chọn tỷ lệ đường' + '\n';
+                countError++;
+			}
+			
+			if (itemIce === -1) {
+				mess += 'Bạn chưa chọn tỷ lệ đá' + '\n';
+                countError++;
+			}
 
             if (countError === 0) {
                 let info = await SanPhamHook.getSanPhamById(itemProduct);
