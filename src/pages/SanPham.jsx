@@ -86,7 +86,7 @@ function SanPham() {
                         <div>
                             <div className='font-bold text-3xl'>Import dữ liệu Sản phẩm với file excel</div>
                             <a href='../../dist/assets/MilkTeaData.xlsx' download>Download file excel tại đây</a>
-                            <FileUpload ref={importRef} mode="basic" name="demo[]" accept=".xlsx" maxFileSize={1000000} uploadHandler={onBasicUploadAuto} customUpload chooseLabel="Import" />
+                            <FileUpload ref={importRef} mode="basic" name="demo[]" accept=".xlsx" maxFileSize={10000000} uploadHandler={onBasicUploadAuto} customUpload chooseLabel="Import" />
                             {/* <FileUpload ref={this.imageRef} mode="basic" name="demo[]" chooseLabel="Tải hình ảnh tối đa 1 MB" accept="image/*" maxFileSize={1000000} className="mb-2" customUpload uploadHandler={this.uploadHinhAnh} /> */}
                         </div>
                     </div>

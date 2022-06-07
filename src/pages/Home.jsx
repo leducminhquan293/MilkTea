@@ -487,7 +487,7 @@ function Home() {
                                                                     <div
                                                                         key={key}
                                                                         className={(key + 1) !== product.length ? 'mr-2' : ''}
-                                                                        style={{ width: 120, height: 250, float: 'left' }}
+                                                                        style={{ width: 120, height: 270, float: 'left' }}
                                                                         onClick={() => onChangeProduct(item)}>
                                                                         <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
                                                                             <Image
@@ -496,8 +496,8 @@ function Home() {
                                                                                 alt={item.label}
                                                                             />
                                                                         </div>
-                                                                        <div style={{ height: 120 }} className={itemProduct === item.id ? 'bg-yellow-500' : 'bg-cyan-500'}>
-                                                                            <div style={{ height: 90 }} className='text-white text-center p-2'>{item.label}</div>
+                                                                        <div style={{ height: 140, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
+                                                                            <div style={{ height: 110 }} className='text-white text-center p-2'>{item.label}</div>
                                                                             <div style={{ height: 30 }} className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
                                                                         </div>
                                                                     </div>
