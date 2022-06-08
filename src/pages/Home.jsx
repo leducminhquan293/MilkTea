@@ -30,6 +30,7 @@ import { ProgressBar } from 'primereact/progressbar';
 import { RadioButton } from 'primereact/radiobutton';
 import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
+import DateChoose from '../partials/actions/DateChoose';
 
 function Home() {
     const toast = useRef(null);
@@ -356,12 +357,13 @@ function Home() {
 
                         {/* Welcome banner */}
                         <WelcomeBanner />
-
+                        
                         <div className="container mx-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 <div className="flex justify-start">
                                     <Button icon="pi pi-angle-left" className='p-button-text p-button-plain' onClick={() => onDecreaseDate()} />
-                                    <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' />
+                                    {/* <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' /> */}
+                                    <DateChoose value={itemDate} onChange={(e) => handleDate(e)} />
                                     <Button icon="pi pi-angle-right" className='p-button-text p-button-plain' onClick={() => onIncreaseDate()} />
                                 </div>
                                 <div className="flex justify-start">
