@@ -1,67 +1,101 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
 import Banner from '../partials/Banner';
+import Constants from '../class/constants';
 import Header from '../partials/Header';
+import LabelMod from '../components/LabelMod';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
+import ThuongHieuHook from '../class/hooks/useThuongHieu';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
-import { FileUpload } from 'primereact/fileupload';
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { Dropdown } from 'primereact/dropdown';
+import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
-import Constants from '../class/constants';
 
 function Topping() {
     const toast = useRef(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const importRef = useRef();
+    const [showModal, setShowModal] = useState(false);
+    const [itemName, setItemName] = useState('');
+    const [itemBrand, setItemBrand] = useState(-1);
+    const [brand, setBrand] = useState([]);
 
-    const onBasicUploadAuto = async (event) => {
+    const getThuongHieu = async () => {
+        let res = await ThuongHieuHook.getThuongHieuDropDown();
+        setBrand(res);
+    }
+    
+    const fetchData = () => {
+        getThuongHieu();
+    }
+
+    const onChangeTopping = (flag) => {
         try {
-            let count = 0;
-            let total = 0;
-            const file = event.files[0];
-            const reader = new FileReader();
-            reader.onload = async (evt) => { // evt = on_file_select event
-                /* Parse data */
-                const bstr = evt.target.result;
-                const wb = XLSX.read(bstr, { type: 'binary' });
-                /* Get first worksheet */
-                const wsname = wb.SheetNames[0];
-                const ws = wb.Sheets[wsname];
-                /* Convert array of arrays */
-                const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                total = data.length;
-                /* Update state */
-                await SanPhamHook.deleteSanPham();
+            let mess = '';
+            let countError = 0;
 
-                for (let i = 1; i < data.length; i++) {
-                    let params = {
-                        value: data[i]['0'],
-                        label: data[i]['1'],
-                        content: data[i]['2'],
-                        mime: data[i]['3'],
-                        price: data[i]['4'],
-                        priceForUpSize: data[i]['5'],
-                        idBrand: data[i]['6'],
-                        avaiable: data[i]['7'],
-                    }
+            if (itemName === '') {
+                mess += 'Bạn chưa nhập tên topping' + '\n';
+                countError++;
+            }
 
-                    await SanPhamHook.addSanPham(params);
-                    count++;
+            if (itemBrand === -1) {
+                mess += 'Bạn chưa chọn thương hiệu' + '\n';
+                countError++;
+            }
+
+            if (countError === 0) {
+                let info = await SanPhamHook.getSanPhamById(itemProduct);
+                let params = {
+                    name: itemHoTen,
+                    idBrand: itemBrand,
+                    brandName: itemBrandName,
+                    size: itemSize,
+                    sugar: itemSugar.key,
+                    ice: itemIce.key,
+                    idProduct: itemProduct,
+                    productName: itemProductName,
+                    price: itemSize ? (info.price + info.priceForUpSize) : info.price,
+                    createdDate: moment(new Date()).format('DD/MM/YYYY')
                 }
-            };
-            reader.readAsBinaryString(file);
-            importRef.current.clear();
-            Constants.showSuccess(toast, 'Đã import dữ liệu')
+
+                if (!flag) // add
+                    DanhSachHook.addDanhSach(params);
+                else // edit
+                    DanhSachHook.updateDanhSach(itemDanhSach, params);
+            }
+
+            if (mess !== '') {
+                Constants.showWarn(toast, mess);
+            }
+            else {
+                getDanhSach();
+                setShowModal(false);
+                Constants.showSuccess(toast, 'Đã nhận được đơn hàng');
+            }
         } catch (error) {
-            alert(error)
+            alert(error);
         }
     }
+
+    useEffect(() => {
+        fetchData();
+    }, [])
+
+    const renderFooter = (
+        <div>
+            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeTopping(false)} />
+            <Button label="Hủy" icon="pi pi-times" onClick={() => setShowModal(false)} />
+        </div>
+    );
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -84,10 +118,7 @@ function Topping() {
 
                         {/* Dashboard actions */}
                         <div>
-                            <div className='font-bold text-3xl'>Import dữ liệu Sản phẩm với file excel</div>
-                            <a href='../../dist/assets/MilkTeaData.xlsx' download>Download file excel tại đây</a>
-                            <FileUpload ref={importRef} mode="basic" name="demo[]" accept=".xlsx" maxFileSize={10000000} uploadHandler={onBasicUploadAuto} customUpload chooseLabel="Import" />
-                            {/* <FileUpload ref={this.imageRef} mode="basic" name="demo[]" chooseLabel="Tải hình ảnh tối đa 1 MB" accept="image/*" maxFileSize={1000000} className="mb-2" customUpload uploadHandler={this.uploadHinhAnh} /> */}
+                            <Button icon='pi pi-plus' iconPos='left' label='Thêm Topping' onClick={() => setShowModal(true)} />
                         </div>
                     </div>
                 </main>
@@ -95,6 +126,21 @@ function Topping() {
                 <Banner />
 
             </div>
+
+            <Dialog header="Topping" visible={showModal} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModal(false)}>
+                <div>
+                    <LabelMod name={'Tên'} />
+                </div>
+                <div>
+                    <InputText value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Tên Topping" className='w-full' />
+                </div>
+                <div className='mt-2'>
+                    <LabelMod name={'Thương hiệu'} />
+                </div>
+                <div>
+                    <Dropdown value={itemBrand} options={brand} onChange={(e) => setItemBrand(e.value)} placeholder="Chọn thương hiệu" className='w-full' />
+                </div>
+            </Dialog>
         </div>
     );
 }

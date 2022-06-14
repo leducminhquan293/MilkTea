@@ -15,8 +15,24 @@ const getThuongHieu = async () => {
     return temp;
 }
 
+const getThuongHieuDropDown = async () => {
+    let temp = [];
+    const res = query(thuongHieuRef, where('HienThi', '==', true), orderBy('value'));
+    const querySnapshot = await getDocs(res);
+    querySnapshot.forEach((doc) => {
+        let single = {
+            value: doc.data().value,
+            label: doc.data().label
+        }
+        temp.push(single)
+    });
+
+    return temp;
+}
+
 const ThuongHieuHook = {
-    getThuongHieu
+    getThuongHieu,
+    getThuongHieuDropDown
 }
 
 export default ThuongHieuHook;

@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
 import Banner from '../partials/Banner';
+import Constants from '../class/constants';
 import Header from '../partials/Header';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
@@ -13,7 +14,6 @@ import "primeicons/primeicons.css";
 
 import { FileUpload } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
-import Constants from '../class/constants';
 
 function SanPham() {
     const toast = useRef(null);
