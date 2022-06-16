@@ -69,7 +69,7 @@ function Home() {
     const getGiamGia = async (value) => {
         let date = typeof value !== 'undefined' && value !== null ? value : itemDate;
         let res = await DonHangHook.getGiamGiaByNgayDat(date);
-        
+
         if (res.length === 0)
             setItemReduce(null)
         else
@@ -248,16 +248,16 @@ function Home() {
                     countError++;
                 }
             }
-			
-			if (itemSugar === -1) {
-				mess += 'Bạn chưa chọn tỷ lệ đường' + '\n';
+
+            if (itemSugar === -1) {
+                mess += 'Bạn chưa chọn tỷ lệ đường' + '\n';
                 countError++;
-			}
-			
-			if (itemIce === -1) {
-				mess += 'Bạn chưa chọn tỷ lệ đá' + '\n';
+            }
+
+            if (itemIce === -1) {
+                mess += 'Bạn chưa chọn tỷ lệ đá' + '\n';
                 countError++;
-			}
+            }
 
             if (countError === 0) {
                 let info = await SanPhamHook.getSanPhamById(itemProduct);
@@ -275,9 +275,9 @@ function Home() {
                 }
 
                 if (!flag) // add
-                    DanhSachHook.addDanhSach(params);
+                    await DanhSachHook.addDanhSach(params);
                 else // edit
-                    DanhSachHook.updateDanhSach(itemDanhSach, params);
+                    await DanhSachHook.updateDanhSach(itemDanhSach, params);
             }
 
             if (mess !== '') {
@@ -356,7 +356,7 @@ function Home() {
 
                         {/* Welcome banner */}
                         <WelcomeBanner />
-                        
+
                         <div className="container mx-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 <div className="flex justify-start">

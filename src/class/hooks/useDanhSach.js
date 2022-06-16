@@ -10,6 +10,7 @@ const getDanhSach = async (value) => {
     let date = moment(value).format('DD/MM/YYYY');
     const res = query(danhSachRef, where('createdDate', '==', date));
     const querySnapshot = await getDocs(res);
+    
     querySnapshot.forEach((doc) => {
         let data = doc.data();
         data.id = doc.id;

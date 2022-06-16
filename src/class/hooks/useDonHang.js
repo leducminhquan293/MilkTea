@@ -10,6 +10,7 @@ const getGiamGiaByNgayDat = async (value) => {
     let date = moment(value).format('DD/MM/YYYY');
     const res = query(donHangRef, where('ngayDat', '==', date));
     const querySnapshot = await getDocs(res);
+    
     querySnapshot.forEach((doc) => {
         let data = doc.data();
         data.id = doc.id;
@@ -24,10 +25,8 @@ const addDonHang = async (params) => {
 };
 
 const updateGiamGiaByNgayDat = async (value, params) => { 
-    console.log(value);
-    console.log(params)
     let temp = await getGiamGiaByNgayDat(value);
-    console.log(temp)
+
     if (temp.length === 0) // lần đầu
         addDonHang(params)
     else

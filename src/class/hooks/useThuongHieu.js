@@ -8,8 +8,23 @@ const getThuongHieu = async () => {
     let temp = [];
     const res = query(thuongHieuRef, where('HienThi', '==', true), orderBy('value'));
     const querySnapshot = await getDocs(res);
+    
     querySnapshot.forEach((doc) => {
         temp.push(doc.data())
+    });
+
+    return temp;
+}
+
+const getThuongHieuByValue = async (id) => {
+    let temp = [];
+    const res = query(thuongHieuRef, where('value', '==', id));
+    const querySnapshot = await getDocs(res);
+
+    querySnapshot.forEach((doc) => {
+        let data = doc.data();
+        data.id = doc.id;
+        temp.push(data);
     });
 
     return temp;
@@ -19,6 +34,7 @@ const getThuongHieuDropDown = async () => {
     let temp = [];
     const res = query(thuongHieuRef, where('HienThi', '==', true), orderBy('value'));
     const querySnapshot = await getDocs(res);
+
     querySnapshot.forEach((doc) => {
         let single = {
             value: doc.data().value,
@@ -32,6 +48,7 @@ const getThuongHieuDropDown = async () => {
 
 const ThuongHieuHook = {
     getThuongHieu,
+    getThuongHieuByValue,
     getThuongHieuDropDown
 }
 

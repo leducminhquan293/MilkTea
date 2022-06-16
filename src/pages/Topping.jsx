@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
 
 import Banner from '../partials/Banner';
 import Constants from '../class/constants';
 import Header from '../partials/Header';
 import LabelMod from '../components/LabelMod';
-import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
+import ToppingHook from '../class/hooks/useTopping';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
@@ -15,29 +14,78 @@ import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
 
 import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
+import { ProgressBar } from 'primereact/progressbar';
 import { Toast } from 'primereact/toast';
 
 function Topping() {
     const toast = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [flag, setFlag] = useState(false); // false: add item - true: edit item
     const [itemName, setItemName] = useState('');
+    const [itemTopping, setItemTopping] = useState(-1);
     const [itemBrand, setItemBrand] = useState(-1);
+    const [itemBrandName, setItemBrandName] = useState('');
     const [brand, setBrand] = useState([]);
+    const [topping, setTopping] = useState([]);
 
     const getThuongHieu = async () => {
         let res = await ThuongHieuHook.getThuongHieuDropDown();
         setBrand(res);
     }
-    
-    const fetchData = () => {
-        getThuongHieu();
+
+    const getTopping = async () => {
+        setIsLoading(true);
+        let res = await ToppingHook.getTopping();
+        setTopping(res);
+        setIsLoading(false);
     }
 
-    const onChangeTopping = (flag) => {
+    const onChangeModal = () => {
+        setShowModal(true);
+        setFlag(false);
+        setItemName('');
+        setItemBrand(-1);
+        setItemBrandName('');
+    }
+
+    const onChangeBrand = async (e) => {
+        setItemBrand(e.value);
+        let res = await ThuongHieuHook.getThuongHieuByValue(e.value);
+        setItemBrandName(res[0].label);
+    }
+
+    const onEditRow = async (item) => {
+        setShowModal(true);
+        setFlag(true);
+        setItemTopping(item.id);
+        setItemName(item.label);
+        setItemBrand(item.idBrand);
+        setItemBrandName(item.brandName);
+    }
+
+    const onDeleteRow = async (item) => {
+        try {
+            await ToppingHook.deleteTopping(item.id);
+            Constants.showSuccess(toast, 'Đã xóa dữ liệu');
+            getTopping();
+        } catch (error) {
+            alert(error)
+        }
+    }
+
+    const fetchData = () => {
+        getThuongHieu();
+        getTopping();
+    }
+
+    const onChangeTopping = async () => {
         try {
             let mess = '';
             let countError = 0;
@@ -53,33 +101,26 @@ function Topping() {
             }
 
             if (countError === 0) {
-                let info = await SanPhamHook.getSanPhamById(itemProduct);
                 let params = {
-                    name: itemHoTen,
+                    label: itemName,
                     idBrand: itemBrand,
                     brandName: itemBrandName,
-                    size: itemSize,
-                    sugar: itemSugar.key,
-                    ice: itemIce.key,
-                    idProduct: itemProduct,
-                    productName: itemProductName,
-                    price: itemSize ? (info.price + info.priceForUpSize) : info.price,
-                    createdDate: moment(new Date()).format('DD/MM/YYYY')
+                    hienThi: true
                 }
-
+                
                 if (!flag) // add
-                    DanhSachHook.addDanhSach(params);
+                    await ToppingHook.addTopping(params);
                 else // edit
-                    DanhSachHook.updateDanhSach(itemDanhSach, params);
+                    await ToppingHook.updateTopping(itemTopping, params);
             }
 
             if (mess !== '') {
                 Constants.showWarn(toast, mess);
             }
             else {
-                getDanhSach();
+                getTopping();
                 setShowModal(false);
-                Constants.showSuccess(toast, 'Đã nhận được đơn hàng');
+                Constants.showSuccess(toast, 'Đã thêm topping');
             }
         } catch (error) {
             alert(error);
@@ -92,10 +133,22 @@ function Topping() {
 
     const renderFooter = (
         <div>
-            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeTopping(false)} />
-            <Button label="Hủy" icon="pi pi-times" onClick={() => setShowModal(false)} />
+            <Button label="Hủy" icon="pi pi-times" className='p-button-secondary' onClick={() => setShowModal(false)} />
+            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeTopping()} />
         </div>
     );
+
+    const bodyEdit = (value) => {
+        return (
+            <Button icon="pi pi-pencil" iconPos="right" onClick={() => onEditRow(value)} />
+        )
+    }
+
+    const bodyDelete = (value) => {
+        return (
+            <Button icon="pi pi-trash" iconPos="right" onClick={() => onDeleteRow(value)} className="p-button-outlined p-button-danger" />
+        )
+    }
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -118,7 +171,29 @@ function Topping() {
 
                         {/* Dashboard actions */}
                         <div>
-                            <Button icon='pi pi-plus' iconPos='left' label='Thêm Topping' onClick={() => setShowModal(true)} />
+                            <Button icon='pi pi-plus' iconPos='left' label='Thêm Topping' onClick={() => onChangeModal()} />
+                        </div>
+
+                        <div className='mt-2'>
+                            {
+                                isLoading &&
+                                <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
+                            }
+                            {
+                                !isLoading &&
+                                <DataTable value={topping}
+                                    editMode="row"
+                                    selectionMode='single'
+                                    responsiveLayout="scroll">
+                                    <Column field="label" header="Họ tên"></Column>
+                                    <Column field="brandName" header="Thương hiệu"></Column>
+                                    <Column field="id" header="id" hidden></Column>
+                                    <Column field="value" header="value" hidden></Column>
+                                    <Column field="idBrand" header="idBrand" hidden></Column>
+                                    <Column body={bodyEdit}></Column>
+                                    <Column body={bodyDelete}></Column>
+                                </DataTable>
+                            }
                         </div>
                     </div>
                 </main>
@@ -138,7 +213,7 @@ function Topping() {
                     <LabelMod name={'Thương hiệu'} />
                 </div>
                 <div>
-                    <Dropdown value={itemBrand} options={brand} onChange={(e) => setItemBrand(e.value)} placeholder="Chọn thương hiệu" className='w-full' />
+                    <Dropdown value={itemBrand} options={brand} onChange={(e) => onChangeBrand(e)} placeholder="Chọn thương hiệu" className='w-full' />
                 </div>
             </Dialog>
         </div>

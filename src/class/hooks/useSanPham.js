@@ -8,6 +8,7 @@ const getSanPhamByThuongHieu = async (id) => {
     let temp = [];
     const res = query(sanPhamRef, where('idBrand', '==', id), orderBy('value'));
     const querySnapshot = await getDocs(res);
+
     querySnapshot.forEach((doc) => {
         let data = doc.data();
         data.id = doc.id;
@@ -21,6 +22,7 @@ const getSanPhamDoc = async () => {
     let temp = [];
     const res = query(sanPhamRef, orderBy('value'));
     const querySnapshot = await getDocs(res);
+
     querySnapshot.forEach((doc) => {
         temp.push(doc)
     });
@@ -43,6 +45,7 @@ const addSanPham = async (params) => {
 const deleteSanPham = async (params) => { 
     const res = query(sanPhamRef, orderBy('value'));
     const querySnapshot = await getDocs(res);
+    
     querySnapshot.forEach((doc) => {
         deleteDoc(doc.ref)
     });
