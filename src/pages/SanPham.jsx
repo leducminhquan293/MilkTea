@@ -41,14 +41,16 @@ function SanPham() {
 
                 for (let i = 1; i < data.length; i++) {
                     let params = {
-                        value: data[i]['0'],
-                        label: data[i]['1'],
-                        content: data[i]['2'],
-                        mime: data[i]['3'],
-                        price: data[i]['4'],
-                        priceForUpSize: data[i]['5'],
-                        idBrand: data[i]['6'],
-                        avaiable: data[i]['7'],
+                        value: typeof data[i]['0'] !== 'undefined' ? data[i]['0'] : -1,
+                        label: typeof data[i]['1'] !== 'undefined' ? data[i]['1'] : '',
+                        content: typeof data[i]['2'] !== 'undefined' ? data[i]['2'] : '',
+                        path: typeof data[i]['3'] !== 'undefined' ? data[i]['3'] : '',
+                        description: typeof data[i]['4'] !== 'undefined' ? data[i]['4'] : '',
+                        mime: typeof data[i]['5'] !== 'undefined' ? data[i]['5'] : '',
+                        price: typeof data[i]['6'] !== 'undefined' ? data[i]['6'] : -1,
+                        priceForUpSize: typeof data[i]['7'] !== 'undefined' ? data[i]['7'] : -1,
+                        idBrand: typeof data[i]['8'] !== 'undefined' ? data[i]['8'] : -1,
+                        avaiable: typeof data[i]['9'] !== 'undefined' ? data[i]['9'] : true
                     }
 
                     await SanPhamHook.addSanPham(params);

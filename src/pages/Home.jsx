@@ -16,6 +16,7 @@ import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";
+import "./styles.css"
 
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
@@ -30,6 +31,7 @@ import { ProgressBar } from 'primereact/progressbar';
 import { RadioButton } from 'primereact/radiobutton';
 import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
+import { Tooltip } from 'primereact/tooltip';
 
 function Home() {
     const toast = useRef(null);
@@ -489,6 +491,7 @@ function Home() {
                                                 </div>
                                                 <div className='mt-2'>
                                                     <LabelMod name={'Sản phẩm'} />
+                                                    <label style={{ color: 'deeppink' }}>{product.length}</label>
                                                 </div>
                                                 <div className="flex" style={{ height: 500, overflowY: 'scroll' }}>
                                                     <div className='flex-row'>
@@ -503,12 +506,19 @@ function Home() {
                                                                         <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
                                                                             <Image
                                                                                 imageStyle={{ width: 120, height: 80 }}
-                                                                                src={item.content}
+                                                                                src={item.content === '' ? item.path : item.content}
                                                                                 alt={item.label}
                                                                             />
                                                                         </div>
                                                                         <div style={{ height: 140, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
-                                                                            <div style={{ height: 110 }} className='text-white text-center p-2'>{item.label}</div>
+                                                                            <div style={{ height: 110 }} className='text-white text-center p-2 tooltip-on-hover'>{item.label}</div>
+                                                                            <div class="tooltip" style={{
+                                                                                backgroundColor: '#ff1493',
+                                                                                color: '#fff',
+                                                                                position: 'relative',
+                                                                                borderRadius: 5,
+                                                                                padding: 5
+                                                                            }}>{item.description !== '' ? item.description : 'Không có mô tả'}</div>
                                                                             <div style={{ height: 30 }} className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
                                                                         </div>
                                                                     </div>
