@@ -218,11 +218,12 @@ function Topping() {
                                     header={header}
                                     filters={filters}
                                     globalFilterFields={['label', 'brandName']}
-                                    paginator
-                                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                                    currentPageReportTemplate="Hiển thị từ {first} đến {last} trong {totalRecords} kết quả"
-                                    rows={10}
-                                    rowsPerPageOptions={[10, 20, 50]}
+                                    // dính lỗi ko thể mở menu khi ở chế độ mobile responsive
+                                    // paginator
+                                    // paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                                    // currentPageReportTemplate="Hiển thị từ {first} đến {last} trong {totalRecords} kết quả"
+                                    // rows={10}
+                                    // rowsPerPageOptions={[10, 20, 50]}
                                     responsiveLayout="scroll">
                                     <Column field="label" header="Họ tên"></Column>
                                     <Column field="brandName" header="Thương hiệu"></Column>

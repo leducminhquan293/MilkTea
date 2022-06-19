@@ -131,6 +131,8 @@ function Home() {
         setItemProduct(-1);
         setProduct(res);
         setTopping(resTopping);
+        setCheckTopping([]);
+        setPriceTopping([]);
         setIsLoadingProduct(false);
     }
 
@@ -307,7 +309,6 @@ function Home() {
             }
 
             if (countError === 0) {
-                let info = await SanPhamHook.getSanPhamById(itemProduct);
                 let params = {
                     name: itemHoTen,
                     idBrand: itemBrand,
@@ -322,7 +323,7 @@ function Home() {
                     price: renderPrice(selectedProduct),
                     createdDate: moment(new Date()).format('DD/MM/YYYY')
                 }
-                console.log(params)
+
                 if (!flag) // add
                     await DanhSachHook.addDanhSach(params);
                 else // edit
@@ -378,11 +379,16 @@ function Home() {
     }
 
     const bodyTopping = (value) => {
-        const list = value.toppingName.map((item) => {
-            return <div>{item.label}<br /></div>
-        })
+        if (typeof value.toppingName !== 'undefined') {
+            const list = value.toppingName.map((item) => {
+                return <div>{item.label}<br /></div>
+            })
 
-        return list;
+            return list;
+        }
+        else {
+            return <div></div>
+        }
     }
 
     let footerGroup = <ColumnGroup>
