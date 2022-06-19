@@ -19,6 +19,20 @@ const getTopping = async () => {
     return temp;
 }
 
+const getToppingByThuongHieu = async (id) => {
+    let temp = [];
+    const res = query(toppingRef, where('idBrand', '==', id), orderBy('value'));
+    const querySnapshot = await getDocs(res);
+
+    querySnapshot.forEach((doc) => {
+        let data = doc.data();
+        data.id = doc.id;
+        temp.push(data);
+    });
+
+    return temp;
+}
+
 const getLatestValue = async () => {
     let temp = -1;
     const res = query(toppingRef, orderBy('value', 'desc'), limit(1));
@@ -48,6 +62,7 @@ const deleteTopping = async (id) => {
 
 const ToppingHook = {
     getTopping,
+    getToppingByThuongHieu,
     addTopping,
     updateTopping,
     deleteTopping

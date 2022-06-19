@@ -20,6 +20,7 @@ import "./styles.css"
 
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
+import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { ColumnGroup } from 'primereact/columngroup';
 import { DataTable } from 'primereact/datatable';
@@ -31,15 +32,19 @@ import { ProgressBar } from 'primereact/progressbar';
 import { RadioButton } from 'primereact/radiobutton';
 import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
-import { Tooltip } from 'primereact/tooltip';
+import ToppingHook from '../class/hooks/useTopping';
 
 function Home() {
     const toast = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingProduct, setIsLoadingProduct] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [flag, setFlag] = useState(false); // flag: add - true: edit
     const [disabledModal, setDisabledModal] = useState(false);
+    const [priceTopping, setPriceTopping] = useState([]);
+    const [checkTopping, setCheckTopping] = useState([]);
+    const [topping, setTopping] = useState([]);
     const [brand, setBrand] = useState([]);
     const [product, setProduct] = useState([]);
     const [data, setData] = useState([]);
@@ -49,12 +54,13 @@ function Home() {
     const [itemBrand, setItemBrand] = useState(-1);
     const [itemBrandName, setItemBrandName] = useState('');
     const [itemSize, setItemSize] = useState(false); // false: Medium - true: Large
+    const [selectedProduct, setSelectedProduct] = useState(-1);
     const [itemProduct, setItemProduct] = useState(-1);
     const [itemProductName, setItemProductName] = useState('');
     const [itemDate, setItemDate] = useState(new Date());
     const [itemDanhSach, setItemDanhSach] = useState('');
-    const [itemSugar, setItemSugar] = useState(-1);
-    const [itemIce, setItemIce] = useState(-1);
+    const [itemSugar, setItemSugar] = useState({ key: 30, name: '30%' });
+    const [itemIce, setItemIce] = useState({ key: 100, name: '100%' });
     const [itemReduce, setItemReduce] = useState();
 
     const handleDate = (value) => {
@@ -94,12 +100,38 @@ function Home() {
         setItemProduct(-1);
     }
 
+    const onChangeCheckTopping = (e, item) => {
+        if (itemProduct !== -1) {
+            let selectedTopping = [...checkTopping];
+            let selectedPriceTopping = [...priceTopping];
+
+            if (e.checked) {
+                selectedTopping.push(e.value);
+                selectedPriceTopping.push(item);
+            }
+            else {
+                selectedTopping.splice(selectedTopping.indexOf(e.value), 1);
+                selectedPriceTopping = selectedPriceTopping.filter(c => c.value !== e.value);
+            }
+
+            setPriceTopping(selectedPriceTopping);
+            setCheckTopping(selectedTopping);
+        }
+        else {
+            Constants.showWarn(toast, 'Bạn chưa chọn đồ uống');
+        }
+    }
+
     const onChangeBrand = async (item) => {
+        setIsLoadingProduct(true);
         let res = await SanPhamHook.getSanPhamByThuongHieu(item.value);
+        let resTopping = await ToppingHook.getToppingByThuongHieu(item.value);
         setItemBrand(item.value);
         setItemBrandName(item.label);
         setItemProduct(-1);
         setProduct(res);
+        setTopping(resTopping);
+        setIsLoadingProduct(false);
     }
 
     const onChangeSize = (value) => {
@@ -107,6 +139,7 @@ function Home() {
     }
 
     const onChangeProduct = async (item) => {
+        setSelectedProduct(item);
         setItemProduct(item.id);
         setItemProductName(item.label);
     }
@@ -160,9 +193,15 @@ function Home() {
         setItemSize(item.size);
         setItemSugar(Constants.percent.find(c => c.key === item.sugar));
         setItemIce(Constants.percent.find(c => c.key === item.ice));
+        let resTopping = await ToppingHook.getToppingByThuongHieu(item.idBrand);
+        setTopping(resTopping);
+        setCheckTopping(item.valueTopping);
+        setPriceTopping(item.toppingName);
         setItemDanhSach(item.id);
         let res = await SanPhamHook.getSanPhamByThuongHieu(item.idBrand);
+        let resProduct = await SanPhamHook.getSanPhamById(item.idProduct);
         setProduct(res);
+        setSelectedProduct(resProduct);
         setItemProduct(item.idProduct);
     }
 
@@ -224,6 +263,22 @@ function Home() {
         return total.toLocaleString();
     }
 
+    const renderPrice = (item) => {
+        let total = 0;
+        let topping = 0;
+
+        for (let value of priceTopping) {
+            topping += value.price;
+        }
+
+        total += itemSize ? (item.price + item.priceForUpSize) : item.price;
+
+        if (item.id === itemProduct)
+            total += topping;
+
+        return total;
+    }
+
     const fetchData = () => {
         getThuongHieu();
         getGiamGia();
@@ -251,16 +306,6 @@ function Home() {
                 }
             }
 
-            if (itemSugar === -1) {
-                mess += 'Bạn chưa chọn tỷ lệ đường' + '\n';
-                countError++;
-            }
-
-            if (itemIce === -1) {
-                mess += 'Bạn chưa chọn tỷ lệ đá' + '\n';
-                countError++;
-            }
-
             if (countError === 0) {
                 let info = await SanPhamHook.getSanPhamById(itemProduct);
                 let params = {
@@ -270,12 +315,14 @@ function Home() {
                     size: itemSize,
                     sugar: itemSugar.key,
                     ice: itemIce.key,
+                    valueTopping: checkTopping,
+                    toppingName: priceTopping,
                     idProduct: itemProduct,
                     productName: itemProductName,
-                    price: itemSize ? (info.price + info.priceForUpSize) : info.price,
+                    price: renderPrice(selectedProduct),
                     createdDate: moment(new Date()).format('DD/MM/YYYY')
                 }
-
+                console.log(params)
                 if (!flag) // add
                     await DanhSachHook.addDanhSach(params);
                 else // edit
@@ -330,11 +377,19 @@ function Home() {
         )
     }
 
+    const bodyTopping = (value) => {
+        const list = value.toppingName.map((item) => {
+            return <div>{item.label}<br /></div>
+        })
+
+        return list;
+    }
+
     let footerGroup = <ColumnGroup>
         <Row>
             <Column footer="Tổng cộng:" />
             <Column footer={productTotal} />
-            <Column colSpan={3} />
+            <Column colSpan={4} />
             <Column footer={priceTotal} />
             <Column colSpan={4} />
         </Row>
@@ -466,6 +521,24 @@ function Home() {
                                                             })
                                                         }
                                                     </div>
+                                                    <div className='mt-2'>
+                                                        <LabelMod name={'Topping'} />
+                                                    </div>
+                                                    <div className="flex" style={{ height: 140, overflowY: 'scroll' }}>
+                                                        <div className='flex-row'>
+                                                            {
+                                                                topping.map((item, key) => {
+                                                                    return (
+                                                                        <div key={key} className='mb-1'>
+                                                                            <Checkbox value={item.value} onChange={(e) => onChangeCheckTopping(e, item)} checked={checkTopping.indexOf(item.value) !== -1}></Checkbox>
+                                                                            <label className="ml-1 p-checkbox-label">{item.label}</label>
+                                                                            <label className='ml-1 text-cyan-500'>{item.price.toLocaleString()}</label>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             }
                                             <div className="flex flex-wrap overflow-hidden mt-5">
@@ -480,7 +553,7 @@ function Home() {
                                         {
                                             itemBrand !== -1 &&
                                             <div className="w-full overflow-hidden sm:w-1/2 pl-5">
-                                                <div className='mt-2'>
+                                                <div>
                                                     <LabelMod name={'Kích cỡ'} />
                                                 </div>
                                                 <div className='flex justify-content-center'>
@@ -493,40 +566,49 @@ function Home() {
                                                     <LabelMod name={'Sản phẩm'} />
                                                     <label style={{ color: 'deeppink' }}>{product.length}</label>
                                                 </div>
-                                                <div className="flex" style={{ height: 500, overflowY: 'scroll' }}>
-                                                    <div className='flex-row'>
-                                                        {
-                                                            product.map((item, key) => {
-                                                                return (
-                                                                    <div
-                                                                        key={key}
-                                                                        className={(key + 1) !== product.length ? 'mr-2' : ''}
-                                                                        style={{ width: 120, height: 270, float: 'left' }}
-                                                                        onClick={() => onChangeProduct(item)}>
-                                                                        <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
-                                                                            <Image
-                                                                                imageStyle={{ width: 120, height: 80 }}
-                                                                                src={item.content === '' ? item.path : item.content}
-                                                                                alt={item.label}
-                                                                            />
+                                                {
+                                                    isLoadingProduct &&
+                                                    <ProgressBar mode="indeterminate" style={{ height: '6px' }} className='mt-2' />
+                                                }
+                                                {
+                                                    !isLoadingProduct &&
+                                                    <div className="flex" style={{ height: 500, overflowY: 'scroll' }}>
+                                                        <div className='flex-row'>
+                                                            {
+                                                                product.map((item, key) => {
+                                                                    return (
+                                                                        <div
+                                                                            key={key}
+                                                                            className={(key + 1) !== product.length ? 'mr-2' : ''}
+                                                                            style={{ width: 120, height: 270, float: 'left' }}
+                                                                            onClick={() => onChangeProduct(item)}>
+                                                                            <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
+                                                                                <Image
+                                                                                    imageStyle={{ width: 120, height: 80 }}
+                                                                                    src={item.content === '' ? item.path : item.content}
+                                                                                    alt={item.label}
+                                                                                />
+                                                                            </div>
+                                                                            <div style={{ height: 140, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
+                                                                                <div style={{ height: 110 }} className='text-white text-center p-2 tooltip-on-hover'>{item.label}</div>
+                                                                                <div className="tooltip" style={{
+                                                                                    backgroundColor: '#ff1493',
+                                                                                    color: '#fff',
+                                                                                    position: 'relative',
+                                                                                    borderRadius: 5,
+                                                                                    padding: 5
+                                                                                }}>{item.description !== '' ? item.description : 'Không có mô tả'}</div>
+                                                                                <div style={{ height: 30 }} className='text-white text-center font-bold'>
+                                                                                    {renderPrice(item).toLocaleString()}
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                        <div style={{ height: 140, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
-                                                                            <div style={{ height: 110 }} className='text-white text-center p-2 tooltip-on-hover'>{item.label}</div>
-                                                                            <div class="tooltip" style={{
-                                                                                backgroundColor: '#ff1493',
-                                                                                color: '#fff',
-                                                                                position: 'relative',
-                                                                                borderRadius: 5,
-                                                                                padding: 5
-                                                                            }}>{item.description !== '' ? item.description : 'Không có mô tả'}</div>
-                                                                            <div style={{ height: 30 }} className='text-white text-center font-bold'>{itemSize ? (item.price + item.priceForUpSize).toLocaleString() : item.price.toLocaleString()}</div>
-                                                                        </div>
-                                                                    </div>
-                                                                )
-                                                            })
-                                                        }
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                }
                                             </div>
                                         }
                                     </div>
@@ -550,6 +632,7 @@ function Home() {
                                     <Column field="size" header="Kích cỡ" body={bodySize}></Column>
                                     <Column field="sugar" header="Tỷ lệ đường"></Column>
                                     <Column field="ice" header="Tỷ lệ đá"></Column>
+                                    <Column field="valueTopping" header="Topping" body={bodyTopping}></Column>
                                     <Column field="price" header="Đơn giá" body={bodyDonGia}></Column>
                                     <Column field="brandName" header="Thương hiệu"></Column>
                                     <Column field="id" header="id" hidden></Column>

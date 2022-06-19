@@ -18,9 +18,11 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
+import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { ProgressBar } from 'primereact/progressbar';
 import { Toast } from 'primereact/toast';
+import { InputNumber } from 'primereact/inputnumber';
 
 function Topping() {
     const toast = useRef(null);
@@ -31,9 +33,18 @@ function Topping() {
     const [itemName, setItemName] = useState('');
     const [itemTopping, setItemTopping] = useState(-1);
     const [itemBrand, setItemBrand] = useState(-1);
-    const [itemBrandName, setItemBrandName] = useState('');
+    const [itemPrice, setItemPrice] = useState(0);
     const [brand, setBrand] = useState([]);
     const [topping, setTopping] = useState([]);
+    const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const [filters, setFilters] = useState(null);
+
+    const initFilters = () => {
+        setFilters({
+            'global': { value: null, matchMode: FilterMatchMode.CONTAINS }
+        });
+        setGlobalFilterValue('');
+    }
 
     const getThuongHieu = async () => {
         let res = await ThuongHieuHook.getThuongHieuDropDown();
@@ -51,14 +62,19 @@ function Topping() {
         setShowModal(true);
         setFlag(false);
         setItemName('');
-        setItemBrand(-1);
-        setItemBrandName('');
     }
 
     const onChangeBrand = async (e) => {
         setItemBrand(e.value);
-        let res = await ThuongHieuHook.getThuongHieuByValue(e.value);
-        setItemBrandName(res[0].label);
+    }
+
+    const onGlobalFilterChange = (e) => {
+        const value = e.target.value;
+        let _filters = { ...filters };
+        _filters['global'].value = value;
+
+        setFilters(_filters);
+        setGlobalFilterValue(value);
     }
 
     const onEditRow = async (item) => {
@@ -67,7 +83,7 @@ function Topping() {
         setItemTopping(item.id);
         setItemName(item.label);
         setItemBrand(item.idBrand);
-        setItemBrandName(item.brandName);
+        setItemPrice(item.price);
     }
 
     const onDeleteRow = async (item) => {
@@ -101,13 +117,16 @@ function Topping() {
             }
 
             if (countError === 0) {
+                let res = await ThuongHieuHook.getThuongHieuByValue(itemBrand);
+
                 let params = {
                     label: itemName,
                     idBrand: itemBrand,
-                    brandName: itemBrandName,
+                    brandName: res[0].label,
+                    price: itemPrice,
                     hienThi: true
                 }
-                
+
                 if (!flag) // add
                     await ToppingHook.addTopping(params);
                 else // edit
@@ -129,6 +148,7 @@ function Topping() {
 
     useEffect(() => {
         fetchData();
+        initFilters();
     }, [])
 
     const renderFooter = (
@@ -147,6 +167,17 @@ function Topping() {
     const bodyDelete = (value) => {
         return (
             <Button icon="pi pi-trash" iconPos="right" onClick={() => onDeleteRow(value)} className="p-button-outlined p-button-danger" />
+        )
+    }
+
+    const header = () => {
+        return (
+            <div className="flex justify-content-between">
+                <span className="p-input-icon-left">
+                    <i className="pi pi-search" />
+                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Tìm kiếm" />
+                </span>
+            </div>
         )
     }
 
@@ -184,9 +215,18 @@ function Topping() {
                                 <DataTable value={topping}
                                     editMode="row"
                                     selectionMode='single'
+                                    header={header}
+                                    filters={filters}
+                                    globalFilterFields={['label', 'brandName']}
+                                    paginator
+                                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                                    currentPageReportTemplate="Hiển thị từ {first} đến {last} trong {totalRecords} kết quả"
+                                    rows={10}
+                                    rowsPerPageOptions={[10, 20, 50]}
                                     responsiveLayout="scroll">
                                     <Column field="label" header="Họ tên"></Column>
                                     <Column field="brandName" header="Thương hiệu"></Column>
+                                    <Column field="price" header="Đơn giá"></Column>
                                     <Column field="id" header="id" hidden></Column>
                                     <Column field="value" header="value" hidden></Column>
                                     <Column field="idBrand" header="idBrand" hidden></Column>
@@ -214,6 +254,12 @@ function Topping() {
                 </div>
                 <div>
                     <Dropdown value={itemBrand} options={brand} onChange={(e) => onChangeBrand(e)} placeholder="Chọn thương hiệu" className='w-full' />
+                </div>
+                <div className='mt-2'>
+                    <LabelMod name={'Đơn giá'} />
+                </div>
+                <div>
+                    <InputNumber value={itemPrice} onChange={(e) => setItemPrice(e.value)} placeholder="Đơn giá" className='w-full' />
                 </div>
             </Dialog>
         </div>
