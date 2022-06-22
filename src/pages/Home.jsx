@@ -382,8 +382,8 @@ function Home() {
 
     const bodyTopping = (value) => {
         if (typeof value.toppingName !== 'undefined') {
-            const list = value.toppingName.map((item) => {
-                return <div>{item.label}<br /></div>
+            const list = value.toppingName.map((item, key) => {
+                return <div key={key}>{item.label}<br /></div>
             })
 
             return list;
