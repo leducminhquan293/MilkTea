@@ -226,6 +226,8 @@ function Home() {
                 size: item.size,
                 sugar: item.sugar,
                 ice: item.ice,
+                valueTopping: item.valueTopping,
+                toppingName: item.toppingName,
                 idProduct: item.idProduct,
                 productName: item.productName,
                 price: item.price,
