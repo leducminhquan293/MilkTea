@@ -588,7 +588,7 @@ function Home() {
                                                                         <div
                                                                             key={key}
                                                                             className={(key + 1) !== product.length ? 'mr-2' : ''}
-                                                                            style={{ width: 120, height: 270, float: 'left' }}
+                                                                            style={{ width: 120, height: 290, float: 'left' }}
                                                                             onClick={() => onChangeProduct(item)}>
                                                                             <div style={{ borderWidth: 1, borderStyle: 'solid' }} className='border-indigo-50 p-5'>
                                                                                 <Image
@@ -597,8 +597,8 @@ function Home() {
                                                                                     alt={item.label}
                                                                                 />
                                                                             </div>
-                                                                            <div style={{ height: 140, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
-                                                                                <div style={{ height: 110 }} className='text-white text-center p-2 tooltip-on-hover'>{item.label}</div>
+                                                                            <div style={{ height: 160, background: itemProduct === item.id ? '#90cd93' : '#4baaf5' }}>
+                                                                                <div style={{ height: 130 }} className='text-white text-center p-2 tooltip-on-hover'>{item.label}</div>
                                                                                 <div className="tooltip" style={{
                                                                                     backgroundColor: '#ff1493',
                                                                                     color: '#fff',
