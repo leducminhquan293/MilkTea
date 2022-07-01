@@ -11,6 +11,7 @@ import LabelMod from '../components/LabelMod';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
+import ToppingHook from '../class/hooks/useTopping';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
@@ -24,6 +25,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { ColumnGroup } from 'primereact/columngroup';
 import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
 import { Image } from 'primereact/image';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
@@ -32,7 +34,9 @@ import { ProgressBar } from 'primereact/progressbar';
 import { RadioButton } from 'primereact/radiobutton';
 import { Row } from 'primereact/row';
 import { Toast } from 'primereact/toast';
-import ToppingHook from '../class/hooks/useTopping';
+
+const minConst = 1;
+const maxConst = 45;
 
 function Home() {
     const toast = useRef(null);
@@ -40,7 +44,10 @@ function Home() {
     const [isLoadingProduct, setIsLoadingProduct] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showModalRandom, setShowModalRandom] = useState(false);
+    const [showModalSetting, setShowModalSetting] = useState(false);
     const [flag, setFlag] = useState(false); // flag: add - true: edit
+    const [fire, setFire] = useState(false);
     const [disabledModal, setDisabledModal] = useState(false);
     const [priceTopping, setPriceTopping] = useState([]);
     const [checkTopping, setCheckTopping] = useState([]);
@@ -54,6 +61,7 @@ function Home() {
     const [itemBrand, setItemBrand] = useState(-1);
     const [itemBrandName, setItemBrandName] = useState('');
     const [itemSize, setItemSize] = useState(false); // false: Medium - true: Large
+    const [itemSizeSetting, setItemSizeSetting] = useState(false); // false: Medium - true: Large
     const [selectedProduct, setSelectedProduct] = useState(-1);
     const [itemProduct, setItemProduct] = useState(-1);
     const [itemProductName, setItemProductName] = useState('');
@@ -61,7 +69,37 @@ function Home() {
     const [itemDanhSach, setItemDanhSach] = useState('');
     const [itemSugar, setItemSugar] = useState({ key: 30, name: '30%' });
     const [itemIce, setItemIce] = useState({ key: 100, name: '100%' });
+    const [itemSugarSetting, setItemSugarSetting] = useState({ key: 30, name: '30%' });
+    const [itemIceSetting, setItemIceSetting] = useState({ key: 100, name: '100%' });
     const [itemReduce, setItemReduce] = useState();
+    const [itemNumberInit, setItemNumberInit] = useState(1);
+    const [itemRes1, setItemRes1] = useState();
+    const [itemRes2, setItemRes2] = useState();
+    const [itemRes3, setItemRes3] = useState();
+    const [itemRes4, setItemRes4] = useState();
+    const [itemPre1, setItemPre1] = useState();
+    const [itemPre2, setItemPre2] = useState();
+    const [itemPre3, setItemPre3] = useState();
+    const [itemPre4, setItemPre4] = useState();
+    const [itemOfficial, setItemOfficial] = useState('');
+    const [valueProgress, setValueProgress] = useState(0);
+    const interval = useRef(null);
+
+    const randomNumer = () => {
+        const min = minConst;
+        const max = maxConst;
+        const rand = min + Math.random() * (max - min);
+
+        return rand;
+    }
+
+    const randomNumerBrand = () => {
+        const min = minConst;
+        const max = 6;
+        const rand = min + Math.random() * (max - min);
+
+        return rand;
+    }
 
     const handleDate = (value) => {
         setItemDate(value);
@@ -91,6 +129,12 @@ function Home() {
         setIsLoading(false);
     }
 
+    const onChangeSetting = () => {
+        localStorage.setItem('sugar', JSON.stringify(itemSugarSetting));
+        localStorage.setItem('ice', JSON.stringify(itemIceSetting));
+        localStorage.setItem('size', JSON.stringify(itemSizeSetting));
+    }
+
     const onChangeModal = () => {
         setShowModal(!showModal);
         setFlag(false);
@@ -98,6 +142,14 @@ function Home() {
         setItemBrand(-1);
         setItemSize(false);
         setItemProduct(-1);
+    }
+
+    const onChangeModalRandom = () => {
+        setShowModalRandom(!showModalRandom);
+    }
+
+    const onChangeModalSetting = () => {
+        setShowModalSetting(!showModalSetting);
     }
 
     const onChangeCheckTopping = (e, item) => {
@@ -347,7 +399,69 @@ function Home() {
 
     useEffect(() => {
         fetchData();
+        let lsSugar = localStorage.getItem('sugar');
+        let lsIce = localStorage.getItem('ice');
+        let lsSize = localStorage.getItem('size');
+
+        if (lsSugar)
+            setItemSugar(JSON.parse(lsSugar))
+
+        if (lsIce)
+            setItemIce(JSON.parse(lsIce))
+
+        if (lsSize)
+            setItemSize(JSON.parse(lsSize))
     }, [])
+
+    useEffect(() => {
+        if (fire) {
+            if (
+                typeof itemPre1 !== 'undefined' &&
+                typeof itemPre2 !== 'undefined' &&
+                typeof itemPre3 !== 'undefined' &&
+                typeof itemPre4 !== 'undefined'
+            ) {
+                let val = valueProgress;
+                interval.current = setInterval(() => {
+                    val += Math.floor(Math.random() * 10) + 1;
+
+                    if (val >= 100) {
+                        val = 100;
+                        let res1 = randomNumer().toFixed(0);
+                        let res2 = randomNumer().toFixed(0);
+                        let res3 = randomNumer().toFixed(0);
+                        let res4 = randomNumer().toFixed(0);
+                        let total = (parseInt(res1) + parseInt(res2) + parseInt(res3) + parseInt(res4)).toString();
+                        let official = total.substring(total.length - 1, total.length);
+
+                        if (official === 0 || official > brand.length)
+                            official = randomNumerBrand.toFixed(0);
+
+                        setItemRes1(res1);
+                        setItemRes2(res2);
+                        setItemRes3(res3);
+                        setItemRes4(res4);
+                        setItemOfficial(brand.find(c => c.value === parseInt(official)).label);
+                        setFire(false);
+                        clearInterval(interval.current);
+                    }
+
+                    setValueProgress(val);
+                }, 500);
+
+                return () => {
+                    if (interval.current) {
+                        clearInterval(interval.current);
+                        interval.current = null;
+                    }
+                }
+            }
+            else {
+                Constants.showWarn(toast, 'Bạn chưa nhập các bộ số');
+                setFire(false)
+            }
+        }
+    }, [fire]);
 
     const bodyDonGia = (value) => {
         let res = value.price;
@@ -393,6 +507,20 @@ function Home() {
         }
     }
 
+    const renderFooter = (
+        <div>
+            <Button label="Hủy" icon="pi pi-times" className='p-button-secondary' onClick={() => setShowModalRandom(false)} />
+            <Button label="Quay số" icon="pi pi-check" onClick={() => { setFire(true); setValueProgress(0) }} />
+        </div>
+    );
+
+    const renderFooterSetting = (
+        <div>
+            <Button label="Hủy" icon="pi pi-times" className='p-button-secondary' onClick={() => setShowModalSetting(false)} />
+            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeSetting()} />
+        </div>
+    );
+
     let footerGroup = <ColumnGroup>
         <Row>
             <Column footer="Tổng cộng:" />
@@ -423,7 +551,7 @@ function Home() {
                         <WelcomeBanner />
 
                         <div className="container mx-auto">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                                 <div className="flex justify-start">
                                     <Button icon="pi pi-angle-left" className='p-button-text p-button-plain' onClick={() => onDecreaseDate()} />
                                     {/* <Calendar id="icon" value={itemDate} onChange={(e) => handleDate(e.value)} showIcon dateFormat='dd/mm/yy' /> */}
@@ -438,13 +566,25 @@ function Home() {
                                         iconPos='left'
                                         onClick={() => onChangeModal()} />
                                 </div>
-                                <div className="flex justify-start">
+                                {/* <div className="flex justify-start">
                                     <InputNumber value={itemReduce}
                                         onValueChange={(e) => onChangeReduce(e.value)}
                                         placeholder='Giảm giá %'
                                         suffix='%'
                                         min={1}
                                         max={100} />
+                                </div> */}
+                                <div className='flex justify-start'>
+                                    <Button icon='pi pi-question-circle'
+                                        iconPos='right'
+                                        className='p-button-help'
+                                        onClick={() => onChangeModalRandom()} />
+                                </div>
+                                <div className='flex justify-start'>
+                                    <Button icon='pi pi-ellipsis-h'
+                                        iconPos='right'
+                                        className='p-button-secondary'
+                                        onClick={() => onChangeModalSetting()} />
                                 </div>
                             </div>
                         </div>
@@ -500,7 +640,8 @@ function Home() {
                                                                 return (
                                                                     <div key={category.key} className="field-radiobutton">
                                                                         <RadioButton inputId={category.key}
-                                                                            name="sugar" value={category}
+                                                                            name="sugar"
+                                                                            value={category}
                                                                             onChange={(e) => setItemSugar(e.value)}
                                                                             checked={itemSugar.key === category.key}
                                                                             className='mr-1' />
@@ -519,7 +660,8 @@ function Home() {
                                                                 return (
                                                                     <div key={category.key} className="field-radiobutton">
                                                                         <RadioButton inputId={category.key}
-                                                                            name="ice" value={category}
+                                                                            name="ice"
+                                                                            value={category}
                                                                             onChange={(e) => setItemIce(e.value)}
                                                                             checked={itemIce.key === category.key}
                                                                             className='mr-1' />
@@ -652,6 +794,150 @@ function Home() {
                                 </DataTable>
                             }
                         </div>
+                        <Dialog header="Người ấy là ai?" visible={showModalRandom} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModalRandom(false)}>
+                            <div>
+                                <LabelMod name={'Thể lệ trò chơi'} />
+                            </div>
+                            <div>
+                                <label className='text-indigo-500 font-bold'>Mỗi bộ số</label>
+                                <label> là 1 con số dự đoán có giá trị từ {minConst + ' -> ' + maxConst}. Nếu bạn dự đoán </label>
+                                <label className='text-green-500 font-bold'> trùng khớp với con số kết quả</label>
+                                <label> thì bạn sẽ được mọi người bao trà sữa. Con số cuối cùng sẽ là con số thương hiệu mà bạn phải uống</label>
+                            </div>
+                            <div className="grid overflow-hidden grid-cols-2 grid-rows-1 gap-2 grid-flow-row">
+                                <div className="box">
+                                    <div>
+                                        <LabelMod name={'Bộ số 1'} />
+                                    </div>
+                                    <div>
+                                        <InputNumber value={itemPre1} onChange={(e) => setItemPre1(e.value)} placeholder={"Nhập giá trị từ " + minConst + " -> " + maxConst} min={minConst} max={maxConst} className='w-full' />
+                                    </div>
+                                </div>
+                                <div className="box">
+                                    <div>
+                                        <LabelMod name={'Bộ số 2'} />
+                                    </div>
+                                    <div>
+                                        <InputNumber value={itemPre2} onChange={(e) => setItemPre2(e.value)} placeholder={"Nhập giá trị từ " + minConst + " -> " + maxConst} min={minConst} max={maxConst} className='w-full' />
+                                    </div>
+                                </div>
+                                <div className="box">
+                                    <div>
+                                        <LabelMod name={'Bộ số 3'} />
+                                    </div>
+                                    <div>
+                                        <InputNumber value={itemPre3} onChange={(e) => setItemPre3(e.value)} placeholder={"Nhập giá trị từ " + minConst + " -> " + maxConst} min={minConst} max={maxConst} className='w-full' />
+                                    </div>
+                                </div>
+                                <div className="box">
+                                    <div>
+                                        <LabelMod name={'Bộ số 4'} />
+                                    </div>
+                                    <div>
+                                        <InputNumber value={itemPre4} onChange={(e) => setItemPre4(e.value)} placeholder={"Nhập giá trị từ " + minConst + " -> " + maxConst} min={minConst} max={maxConst} className='w-full' />
+                                    </div>
+                                </div>
+                            </div>
+                            {
+                                fire &&
+                                <ProgressBar value={valueProgress} className='mt-2'></ProgressBar>
+                            }
+                            {
+                                valueProgress === 100 && !fire &&
+                                <div>
+                                    <div className="mt-2 bg-amber-200 p-5 grid overflow-hidden grid-cols-2 grid-rows-1 gap-2 grid-flow-row text-center text-white text-2xl">
+                                        <div className="box">
+                                            {
+                                                itemRes1 !== -1 &&
+                                                <span style={{ width: 100 }} className="text-5xl font-semibold inline-block py-1 px-2 uppercase rounded text-green-600 bg-green-200 uppercase last:mr-0 mr-1">
+                                                    {itemRes1}
+                                                </span>
+                                            }
+                                        </div>
+                                        <div className="box">
+                                            {
+                                                itemRes2 !== -1 &&
+                                                <span style={{ width: 100 }} className="text-5xl font-semibold inline-block py-1 px-2 uppercase rounded text-green-600 bg-green-200 uppercase last:mr-0 mr-1">
+                                                    {itemRes2}
+                                                </span>
+                                            }
+                                        </div>
+                                        <div className="box">
+                                            {
+                                                itemRes3 !== -1 &&
+                                                <span style={{ width: 100 }} className="text-5xl font-semibold inline-block py-1 px-2 uppercase rounded text-green-600 bg-green-200 uppercase last:mr-0 mr-1">
+                                                    {itemRes3}
+                                                </span>
+                                            }
+                                        </div>
+                                        <div className="box">
+                                            {
+                                                itemRes4 !== -1 &&
+                                                <span style={{ width: 100 }} className="text-5xl font-semibold inline-block py-1 px-2 uppercase rounded text-green-600 bg-green-200 uppercase last:mr-0 mr-1">
+                                                    {itemRes4}
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div className='text-center'>
+                                        <span className="mt-2 w-full text-5xl font-semibold inline-block py-1 px-2 uppercase rounded text-rose-600 bg-rose-200 uppercase last:mr-0 mr-1">
+                                            {itemOfficial}
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </Dialog>
+                        <Dialog header="Cài đặt" visible={showModalSetting} style={{ width: '50vw' }} footer={renderFooterSetting} onHide={() => setShowModalSetting(false)}>
+                            <div>
+                                <LabelMod name={'Tỷ lệ đường'} />
+                            </div>
+                            <div className='flex justify-content-center'>
+                                {
+                                    sugar.map((category) => {
+                                        return (
+                                            <div key={category.key} className="field-radiobutton">
+                                                <RadioButton inputId={category.key}
+                                                    name="sugar"
+                                                    value={category}
+                                                    onChange={(e) => setItemSugarSetting(e.value)}
+                                                    checked={itemSugarSetting.key === category.key}
+                                                    className='mr-1' />
+                                                <label htmlFor={category.key} className='mr-3'>{category.name}</label>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                            <div className='mt-2'>
+                                <LabelMod name={'Tỷ lệ đá'} />
+                            </div>
+                            <div className='flex justify-content-center'>
+                                {
+                                    ice.map((category) => {
+                                        return (
+                                            <div key={category.key} className="field-radiobutton">
+                                                <RadioButton inputId={category.key}
+                                                    name="ice"
+                                                    value={category}
+                                                    onChange={(e) => setItemIceSetting(e.value)}
+                                                    checked={itemIceSetting.key === category.key}
+                                                    className='mr-1' />
+                                                <label htmlFor={category.key} className='mr-3'>{category.name}</label>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                            <div className='mt-2'>
+                                <LabelMod name={'Kích cỡ'} />
+                            </div>
+                            <div className='flex justify-content-center'>
+                                <InputSwitch checked={itemSizeSetting} onChange={(e) => onChangeSizeSetting(e.value)} />
+                                <div className='font-bold ml-2 text-indigo-500'>
+                                    {itemSizeSetting === false ? 'Medium' : 'Large'}
+                                </div>
+                            </div>
+                        </Dialog>
                     </div>
                 </main>
 
