@@ -8,6 +8,7 @@ import DateChoose from '../partials/actions/DateChoose';
 import DonHangHook from '../class/hooks/useDonHang';
 import Header from '../partials/Header';
 import LabelMod from '../components/LabelMod';
+import QuaySoHook from '../class/hooks/useQuaySo';
 import SanPhamHook from '../class/hooks/useSanPham';
 import Sidebar from '../partials/Sidebar';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
@@ -129,12 +130,6 @@ function Home() {
         setIsLoading(false);
     }
 
-    const onChangeSetting = () => {
-        localStorage.setItem('sugar', JSON.stringify(itemSugarSetting));
-        localStorage.setItem('ice', JSON.stringify(itemIceSetting));
-        localStorage.setItem('size', JSON.stringify(itemSizeSetting));
-    }
-
     const onChangeModal = () => {
         setShowModal(!showModal);
         setFlag(false);
@@ -174,6 +169,19 @@ function Home() {
         }
     }
 
+    const onChangeQuaySo = () => {
+        setFire(true);
+        setValueProgress(0);
+    }
+
+    const onChangeSetting = () => {
+        localStorage.setItem('sugar', JSON.stringify(itemSugarSetting));
+        localStorage.setItem('ice', JSON.stringify(itemIceSetting));
+        localStorage.setItem('size', JSON.stringify(itemSizeSetting));
+        setShowModalSetting(false);
+        Constants.showSuccess(toast, 'Cài đặt thành công');
+    }
+
     const onChangeBrand = async (item) => {
         setIsLoadingProduct(true);
         let res = await SanPhamHook.getSanPhamByThuongHieu(item.value);
@@ -185,11 +193,20 @@ function Home() {
         setTopping(resTopping);
         setCheckTopping([]);
         setPriceTopping([]);
-        setIsLoadingProduct(false);
-    }
+        let lsSugar = localStorage.getItem('sugar');
+        let lsIce = localStorage.getItem('ice');
+        let lsSize = localStorage.getItem('size') === 'false' ? false : true;
 
-    const onChangeSize = (value) => {
-        setItemSize(value);
+        if (lsSugar)
+            setItemSugar(JSON.parse(lsSugar));
+
+        if (lsIce)
+            setItemIce(JSON.parse(lsIce));
+
+        if (lsSize)
+            setItemSize(lsSize);
+
+        setIsLoadingProduct(false);
     }
 
     const onChangeProduct = async (item) => {
@@ -401,16 +418,16 @@ function Home() {
         fetchData();
         let lsSugar = localStorage.getItem('sugar');
         let lsIce = localStorage.getItem('ice');
-        let lsSize = localStorage.getItem('size');
+        let lsSize = localStorage.getItem('size') === 'false' ? false : true;
 
         if (lsSugar)
-            setItemSugar(JSON.parse(lsSugar))
+            setItemSugarSetting(JSON.parse(lsSugar));
 
         if (lsIce)
-            setItemIce(JSON.parse(lsIce))
+            setItemIceSetting(JSON.parse(lsIce));
 
         if (lsSize)
-            setItemSize(JSON.parse(lsSize))
+            setItemSizeSetting(lsSize);
     }, [])
 
     useEffect(() => {
@@ -437,13 +454,29 @@ function Home() {
                         if (official === 0 || official > brand.length)
                             official = randomNumerBrand.toFixed(0);
 
+                        let brandName = brand.find(c => c.value === parseInt(official)).label;
                         setItemRes1(res1);
                         setItemRes2(res2);
                         setItemRes3(res3);
                         setItemRes4(res4);
-                        setItemOfficial(brand.find(c => c.value === parseInt(official)).label);
+                        setItemOfficial();
                         setFire(false);
                         clearInterval(interval.current);
+
+                        let params = {
+                            duDoan1: itemPre1,
+                            duDoan2: itemPre2,
+                            duDoan3: itemPre3,
+                            duDoan4: itemPre4,
+                            ketQua1: parseInt(res1),
+                            ketQua2: parseInt(res2),
+                            ketQua3: parseInt(res3),
+                            ketQua4: parseInt(res4),
+                            brandName: brandName,
+                            createdDate: new Date()
+                        }
+
+                        QuaySoHook.addQuaySo(params);
                     }
 
                     setValueProgress(val);
@@ -510,7 +543,7 @@ function Home() {
     const renderFooter = (
         <div>
             <Button label="Hủy" icon="pi pi-times" className='p-button-secondary' onClick={() => setShowModalRandom(false)} />
-            <Button label="Quay số" icon="pi pi-check" onClick={() => { setFire(true); setValueProgress(0) }} />
+            <Button label="Quay số" icon="pi pi-check" onClick={() => onChangeQuaySo()} />
         </div>
     );
 
@@ -707,8 +740,11 @@ function Home() {
                                                     <LabelMod name={'Kích cỡ'} />
                                                 </div>
                                                 <div className='flex justify-content-center'>
-                                                    <InputSwitch checked={itemSize} onChange={(e) => onChangeSize(e.value)} />
+                                                    <InputSwitch checked={itemSize} onChange={(e) => setItemSize(e.value)} />
                                                     <div className='font-bold ml-2 text-indigo-500'>
+                                                        {
+                                                            console.log(itemSize, 'itemSize')
+                                                        }
                                                         {itemSize === false ? 'Medium' : 'Large'}
                                                     </div>
                                                 </div>
@@ -887,7 +923,7 @@ function Home() {
                                 </div>
                             }
                         </Dialog>
-                        <Dialog header="Cài đặt" visible={showModalSetting} style={{ width: '50vw' }} footer={renderFooterSetting} onHide={() => setShowModalSetting(false)}>
+                        <Dialog header="Cài đặt mặc định" visible={showModalSetting} style={{ width: '50vw' }} footer={renderFooterSetting} onHide={() => setShowModalSetting(false)}>
                             <div>
                                 <LabelMod name={'Tỷ lệ đường'} />
                             </div>
@@ -932,7 +968,7 @@ function Home() {
                                 <LabelMod name={'Kích cỡ'} />
                             </div>
                             <div className='flex justify-content-center'>
-                                <InputSwitch checked={itemSizeSetting} onChange={(e) => onChangeSizeSetting(e.value)} />
+                                <InputSwitch checked={itemSizeSetting} onChange={(e) => setItemSizeSetting(e.value)} />
                                 <div className='font-bold ml-2 text-indigo-500'>
                                     {itemSizeSetting === false ? 'Medium' : 'Large'}
                                 </div>
