@@ -13,6 +13,7 @@ import './charts/ChartjsConfig';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import SanPham from './pages/SanPham';
+import ThuongHieu from './pages/ThuongHieu';
 import Topping from './pages/Topping';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
     <>
       <Routes>
         <Route exact path="/" element={<Home />} />
+        <Route exact path="/ThuongHieu" element={<ThuongHieu />} />
         <Route exact path="/SanPham" element={<SanPham />} />
         <Route exact path="/Topping" element={<Topping />} />
       </Routes>

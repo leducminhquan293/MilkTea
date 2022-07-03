@@ -6,7 +6,6 @@ import Header from '../partials/Header';
 import LabelMod from '../components/LabelMod';
 import Sidebar from '../partials/Sidebar';
 import ThuongHieuHook from '../class/hooks/useThuongHieu';
-import ToppingHook from '../class/hooks/useTopping';
 import WelcomeBanner from '../partials/dashboard/WelcomeBanner';
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
@@ -19,23 +18,24 @@ import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { FilterMatchMode } from 'primereact/api';
+import { Image } from 'primereact/image';
 import { InputText } from 'primereact/inputtext';
 import { ProgressBar } from 'primereact/progressbar';
 import { Toast } from 'primereact/toast';
 import { InputNumber } from 'primereact/inputnumber';
 
-function Topping() {
+function ThuongHieu() {
     const toast = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [flag, setFlag] = useState(false); // false: add item - true: edit item
     const [itemName, setItemName] = useState('');
-    const [itemTopping, setItemTopping] = useState(-1);
+    const [itemMime, setItemMime] = useState('');
+    const [itemLogo, setItemLogo] = useState('');
     const [itemBrand, setItemBrand] = useState(-1);
     const [itemPrice, setItemPrice] = useState(0);
     const [brand, setBrand] = useState([]);
-    const [topping, setTopping] = useState([]);
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [filters, setFilters] = useState(null);
 
@@ -47,14 +47,9 @@ function Topping() {
     }
 
     const getThuongHieu = async () => {
-        let res = await ThuongHieuHook.getThuongHieuDropDown();
-        setBrand(res);
-    }
-
-    const getTopping = async () => {
         setIsLoading(true);
-        let res = await ToppingHook.getTopping();
-        setTopping(res);
+        let res = await ThuongHieuHook.getThuongHieu();
+        setBrand(res);
         setIsLoading(false);
     }
 
@@ -62,10 +57,8 @@ function Topping() {
         setShowModal(true);
         setFlag(false);
         setItemName('');
-    }
-
-    const onChangeBrand = async (e) => {
-        setItemBrand(e.value);
+        setItemMime('');
+        setItemLogo('');
     }
 
     const onGlobalFilterChange = (e) => {
@@ -80,17 +73,17 @@ function Topping() {
     const onEditRow = async (item) => {
         setShowModal(true);
         setFlag(true);
-        setItemTopping(item.id);
+        setItemBrand(item.id);
         setItemName(item.label);
-        setItemBrand(item.idBrand);
-        setItemPrice(item.price);
+        setItemMime(item.Mime);
+        setItemLogo(item.Logo);
     }
 
     const onDeleteRow = async (item) => {
         try {
-            await ToppingHook.deleteTopping(item.id);
+            await ThuongHieuHook.deleteBrand(item.id);
             Constants.showSuccess(toast, 'Đã xóa dữ liệu');
-            getTopping();
+            getThuongHieu();
         } catch (error) {
             alert(error)
         }
@@ -98,48 +91,49 @@ function Topping() {
 
     const fetchData = () => {
         getThuongHieu();
-        getTopping();
     }
 
-    const onChangeTopping = async () => {
+    const onChangeBrand = async () => {
         try {
             let mess = '';
             let countError = 0;
 
             if (itemName === '') {
-                mess += 'Bạn chưa nhập tên topping' + '\n';
+                mess += 'Bạn chưa nhập tên thương hiệu' + '\n';
                 countError++;
             }
 
-            if (itemBrand === -1) {
-                mess += 'Bạn chưa chọn thương hiệu' + '\n';
+            if (itemMime === '') {
+                mess += 'Bạn chưa nhập Mime' + '\n';
+                countError++;
+            }
+
+            if (itemLogo === '') {
+                mess += 'Bạn chưa nhập Logo' + '\n';
                 countError++;
             }
 
             if (countError === 0) {
-                let res = await ThuongHieuHook.getThuongHieuByValue(itemBrand);
-
                 let params = {
                     label: itemName,
-                    idBrand: itemBrand,
-                    brandName: res[0].label,
-                    price: itemPrice,
-                    hienThi: true
+                    Mime: itemMime,
+                    Logo: itemLogo,
+                    HienThi: true
                 }
-
+console.log(itemBrand)
                 if (!flag) // add
-                    await ToppingHook.addTopping(params);
+                    await ThuongHieuHook.addBrand(params);
                 else // edit
-                    await ToppingHook.updateTopping(itemTopping, params);
+                    await ThuongHieuHook.updateBrand(itemBrand, params);
             }
 
             if (mess !== '') {
                 Constants.showWarn(toast, mess);
             }
             else {
-                getTopping();
+                getThuongHieu();
                 setShowModal(false);
-                Constants.showSuccess(toast, 'Đã thêm topping');
+                Constants.showSuccess(toast, 'Đã thêm thương hiệu');
             }
         } catch (error) {
             alert(error);
@@ -154,9 +148,19 @@ function Topping() {
     const renderFooter = (
         <div>
             <Button label="Hủy" icon="pi pi-times" className='p-button-secondary' onClick={() => setShowModal(false)} />
-            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeTopping()} />
+            <Button label="Xác nhận" icon="pi pi-check" onClick={() => onChangeBrand()} />
         </div>
     );
+
+    const bodyLogo = (value) => {
+        return (
+            <Image
+                imageStyle={{ width: 100, height: 100 }}
+                src={`data:${value.Mime};base64,${value.Logo}`}
+                alt={value.label}
+            />
+        )
+    }
 
     const bodyEdit = (value) => {
         return (
@@ -202,7 +206,7 @@ function Topping() {
 
                         {/* Dashboard actions */}
                         <div>
-                            <Button icon='pi pi-plus' iconPos='left' label='Thêm Topping' onClick={() => onChangeModal()} />
+                            <Button icon='pi pi-plus' iconPos='left' label='Thêm Thương hiệu' onClick={() => onChangeModal()} />
                         </div>
 
                         <div className='mt-2'>
@@ -212,12 +216,12 @@ function Topping() {
                             }
                             {
                                 !isLoading &&
-                                <DataTable value={topping}
+                                <DataTable value={brand}
                                     editMode="row"
                                     selectionMode='single'
                                     header={header}
                                     filters={filters}
-                                    globalFilterFields={['label', 'brandName']}
+                                    globalFilterFields={['label']}
                                     // dính lỗi ko thể mở menu khi ở chế độ mobile responsive
                                     // paginator
                                     // paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
@@ -225,12 +229,10 @@ function Topping() {
                                     // rows={10}
                                     // rowsPerPageOptions={[10, 20, 50]}
                                     responsiveLayout="scroll">
-                                    <Column field="label" header="Họ tên"></Column>
-                                    <Column field="brandName" header="Thương hiệu"></Column>
-                                    <Column field="price" header="Đơn giá"></Column>
+                                    <Column field="label" header="Thương hiệu"></Column>
+                                    <Column field="Mime" header="Đơn giá"></Column>
+                                    <Column field="Logo" header="Logo" body={bodyLogo}></Column>
                                     <Column field="id" header="id" hidden></Column>
-                                    <Column field="value" header="value" hidden></Column>
-                                    <Column field="idBrand" header="idBrand" hidden></Column>
                                     <Column body={bodyEdit}></Column>
                                     <Column body={bodyDelete}></Column>
                                 </DataTable>
@@ -243,28 +245,28 @@ function Topping() {
 
             </div>
 
-            <Dialog header="Topping" visible={showModal} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModal(false)}>
+            <Dialog header="Thương hiệu" visible={showModal} style={{ width: '50vw' }} footer={renderFooter} onHide={() => setShowModal(false)}>
                 <div>
-                    <LabelMod name={'Tên'} />
+                    <LabelMod name={'Tên thương hiệu'} />
                 </div>
                 <div>
-                    <InputText value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Tên Topping" className='w-full' />
+                    <InputText value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Tên thương hiệu" className='w-full' />
                 </div>
                 <div className='mt-2'>
-                    <LabelMod name={'Thương hiệu'} />
+                    <LabelMod name={'Mime'} />
                 </div>
                 <div>
-                    <Dropdown value={itemBrand} options={brand} onChange={(e) => onChangeBrand(e)} placeholder="Chọn thương hiệu" className='w-full' />
+                    <InputText value={itemMime} onChange={(e) => setItemMime(e.target.value)} placeholder="Mime" className='w-full' />
                 </div>
                 <div className='mt-2'>
-                    <LabelMod name={'Đơn giá'} />
+                    <LabelMod name={'Logo'} />
                 </div>
                 <div>
-                    <InputNumber value={itemPrice} onChange={(e) => setItemPrice(e.value)} placeholder="Đơn giá" className='w-full' />
+                    <InputText value={itemLogo} onChange={(e) => setItemLogo(e.target.value)} placeholder="Logo" className='w-full' />
                 </div>
             </Dialog>
         </div>
     );
 }
 
-export default Topping;
+export default ThuongHieu;

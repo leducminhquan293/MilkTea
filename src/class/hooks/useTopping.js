@@ -1,5 +1,4 @@
 import { collection, addDoc, doc, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
-import moment from "moment";
 
 import db from '../firebase';
 import TableName from "../tableName";
