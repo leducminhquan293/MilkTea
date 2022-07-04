@@ -608,9 +608,10 @@ function Home() {
                                         max={100} />
                                 </div> */}
                                 <div className='flex justify-start'>
-                                    <Button icon='pi pi-question-circle'
+                                    <Button icon='pi pi-sun'
                                         iconPos='right'
                                         className='p-button-help'
+                                        label='Quay số'
                                         onClick={() => onChangeModalRandom()} />
                                 </div>
                                 <div className='flex justify-start'>
