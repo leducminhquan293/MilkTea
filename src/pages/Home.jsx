@@ -742,9 +742,6 @@ function Home() {
                                                 <div className='flex justify-content-center'>
                                                     <InputSwitch checked={itemSize} onChange={(e) => setItemSize(e.value)} />
                                                     <div className='font-bold ml-2 text-indigo-500'>
-                                                        {
-                                                            console.log(itemSize, 'itemSize')
-                                                        }
                                                         {itemSize === false ? 'Medium' : 'Large'}
                                                     </div>
                                                 </div>

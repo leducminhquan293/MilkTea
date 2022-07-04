@@ -50,7 +50,7 @@ function SanPham() {
                         price: typeof data[i]['6'] !== 'undefined' ? data[i]['6'] : -1,
                         priceForUpSize: typeof data[i]['7'] !== 'undefined' ? data[i]['7'] : -1,
                         idBrand: typeof data[i]['8'] !== 'undefined' ? data[i]['8'] : -1,
-                        avaiable: typeof data[i]['9'] !== 'undefined' ? data[i]['9'] : true
+                        avaiable: true
                     }
 
                     await SanPhamHook.addSanPham(params);
