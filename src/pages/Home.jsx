@@ -609,7 +609,7 @@ function Home() {
                                 </div> */}
                                 <div className='flex justify-start'>
                                     <Button icon='pi pi-sun'
-                                        iconPos='right'
+                                        iconPos='left'
                                         className='p-button-help'
                                         label='Quay số'
                                         onClick={() => onChangeModalRandom()} />
