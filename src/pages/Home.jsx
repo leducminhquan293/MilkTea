@@ -782,7 +782,7 @@ function Home() {
                                                                                     borderRadius: 5,
                                                                                     padding: 5
                                                                                 }}>{item.description !== '' ? item.description : 'Không có mô tả'}</div>
-                                                                                <div style={{ height: 30 }} className='text-white text-center font-bold'>
+                                                                                <div style={{ height: 30 }} className={(itemSize ? (item.priceForUpSize > 0 ? 'underline underline-offset-2 ' : '') : '') + 'text-white text-center font-bold'}>
                                                                                     {renderPrice(item).toLocaleString()}
                                                                                 </div>
                                                                             </div>
@@ -923,6 +923,14 @@ function Home() {
                         </Dialog>
                         <Dialog header="Cài đặt mặc định" visible={showModalSetting} style={{ width: '50vw' }} footer={renderFooterSetting} onHide={() => setShowModalSetting(false)}>
                             <div>
+                                <LabelMod name={'Phiên bản'} />
+                            </div>
+                            <div>
+                                <span className="w-full text-xl font-semibold inline-block uppercase rounded text-sky-600 uppercase last:mr-0 mr-1">
+                                    1.4
+                                </span>
+                            </div>
+                            <div className='mt-2'>
                                 <LabelMod name={'Tỷ lệ đường'} />
                             </div>
                             <div className='flex justify-content-center'>
