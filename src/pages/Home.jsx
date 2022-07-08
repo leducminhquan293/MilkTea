@@ -453,13 +453,13 @@ function Home() {
 
                         if (official === 0 || official > brand.length)
                             official = randomNumerBrand.toFixed(0);
-
+                            
                         let brandName = brand.find(c => c.value === parseInt(official)).label;
                         setItemRes1(res1);
                         setItemRes2(res2);
                         setItemRes3(res3);
                         setItemRes4(res4);
-                        setItemOfficial();
+                        setItemOfficial(brandName);
                         setFire(false);
                         clearInterval(interval.current);
 
