@@ -927,7 +927,7 @@ function Home() {
                             </div>
                             <div>
                                 <span className="w-full text-xl font-semibold inline-block uppercase rounded text-sky-600 uppercase last:mr-0 mr-1">
-                                    1.4
+                                    1.5
                                 </span>
                             </div>
                             <div className='mt-2'>

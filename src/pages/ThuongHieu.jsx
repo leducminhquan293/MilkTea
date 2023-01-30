@@ -120,7 +120,7 @@ function ThuongHieu() {
                     Logo: itemLogo,
                     HienThi: true
                 }
-console.log(itemBrand)
+
                 if (!flag) // add
                     await ThuongHieuHook.addBrand(params);
                 else // edit
@@ -229,6 +229,7 @@ console.log(itemBrand)
                                     // rows={10}
                                     // rowsPerPageOptions={[10, 20, 50]}
                                     responsiveLayout="scroll">
+                                    <Column field="value" header="ID"></Column>
                                     <Column field="label" header="Thương hiệu"></Column>
                                     <Column field="Mime" header="Đơn giá"></Column>
                                     <Column field="Logo" header="Logo" body={bodyLogo}></Column>
