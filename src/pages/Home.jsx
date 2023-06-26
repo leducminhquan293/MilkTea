@@ -453,7 +453,7 @@ function Home() {
 
                         if (official === 0 || official > brand.length)
                             official = randomNumerBrand.toFixed(0);
-                            
+
                         let brandName = brand.find(c => c.value === parseInt(official)).label;
                         setItemRes1(res1);
                         setItemRes2(res2);
@@ -530,7 +530,7 @@ function Home() {
     const bodyTopping = (value) => {
         if (typeof value.toppingName !== 'undefined') {
             const list = value.toppingName.map((item, key) => {
-                return <div key={key}>{item.label}<br /></div>
+                return <div key={key} style={{ backgroundColor: '#6366f1', color: '#fff' }}>{item.label}<br /></div>
             })
 
             return list;
@@ -538,6 +538,15 @@ function Home() {
         else {
             return <div></div>
         }
+    }
+
+    const checkToppingCount = () => {
+        let res = data.filter(c => c.ToppingName !== false)
+
+        if (res.length > 0)
+            return <div style={{ color: '#ff1493', fontWeight: 'bold' }}>Lưu ý: Người dùng có đặt thêm Topping</div>
+
+        return <div></div>
     }
 
     const renderFooter = (
@@ -622,7 +631,6 @@ function Home() {
                                 </div>
                             </div>
                         </div>
-
                         {
                             showModal &&
                             <div className="card mt-2">
@@ -801,6 +809,9 @@ function Home() {
                         }
                         <div className='mt-2'>
                             {
+                                checkToppingCount()
+                            }
+                            {
                                 isLoading &&
                                 <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
                             }
@@ -927,7 +938,7 @@ function Home() {
                             </div>
                             <div>
                                 <span className="w-full text-xl font-semibold inline-block uppercase rounded text-sky-600 uppercase last:mr-0 mr-1">
-                                    1.5
+                                    1.6
                                 </span>
                             </div>
                             <div className='mt-2'>
